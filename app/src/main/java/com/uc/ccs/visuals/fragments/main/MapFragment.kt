@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -38,6 +39,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         super.onActivityCreated(savedInstanceState)
         //viewModel = ViewModelProvider(this).get(MapViewModel::class.java)
 
+        binding.bottomNavView.setOnItemSelectedListener {
+            when (it.itemId) {
+                R.id.menu_home -> {true}
+                else -> {
+                    findNavController().navigate(R.id.action_mapFragment_to_primaryChangeAccountDialogFragment)
+                    true
+                }
+            }
+        }
     }
 
     override fun onMapReady(p0: GoogleMap) {

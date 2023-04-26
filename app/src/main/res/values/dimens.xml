@@ -80,4 +80,6 @@
     <dimen name="corner_radius_xmedium">32dp</dimen>
     <dimen name="corner_radius_large">38dp</dimen>
     <dimen name="corner_radius_xxlarge">48dp</dimen>
+    <dimen name="list_item_spacing">16dp</dimen>
+    <dimen name="list_item_spacing_half">8dp</dimen>
 </resources>
