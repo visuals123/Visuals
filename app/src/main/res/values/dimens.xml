@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="field_height">60dp</dimen>
+
+    <!-- MARGINS -->
+    <dimen name="margin_novalue">0dp</dimen>
+    <dimen name="margin_xxxxsmall">1dp</dimen>
+    <dimen name="margin_xxxsmall">2dp</dimen>
+    <dimen name="margin_xxsmall">4dp</dimen>
+    <dimen name="margin_xsmall">6dp</dimen>
+    <dimen name="margin_small">8dp</dimen>
+    <dimen name="margin_xxstandard">10dp</dimen>
+    <dimen name="margin_xstandard">12dp</dimen>
+    <dimen name="margin_xs_standard">14dp</dimen>
+    <dimen name="margin_standard">16dp</dimen>
+    <dimen name="margin_ssmedium">18dp</dimen>
+    <dimen name="margin_smedium">20dp</dimen>
+    <dimen name="margin_medium">24dp</dimen>
+    <dimen name="margin_mmedium">25dp</dimen>
+    <dimen name="margin_xs_medium">28dp</dimen>
+    <dimen name="margin_xmedium">32dp</dimen>
+    <dimen name="margin_large">36dp</dimen>
+    <dimen name="margin_xlarge">38dp</dimen>
+    <dimen name="margin_xxlarge">42dp</dimen>
+    <dimen name="margin_xxxlarge">48dp</dimen>
+    <dimen name="margin_xxxxlarge">56dp</dimen>
+    <dimen name="margin_xxxxxlarge">62dp</dimen>
+    <dimen name="margin_xxxxxxlarge">80dp</dimen>
+    <dimen name="margin_xxxxxxlarge_90">90dp</dimen>
+    <dimen name="margin_xxxxxxxlarge">100dp</dimen>
+    <dimen name="margin_xxxxxxxxlarge">140dp</dimen>
+    <dimen name="margin_xxxxxxxxxlarge">150dp</dimen>
+    <dimen name="margin_xxxsmall_nagative">-2dp</dimen>
+
+    <!-- PADDINGS -->
+    <dimen name="padding_xxsmall">1dp</dimen>
+    <dimen name="padding_xxssmall">1.5dp</dimen>
+    <dimen name="padding_xsmall">2dp</dimen>
+    <dimen name="padding_small">4dp</dimen>
+    <dimen name="padding_xstandard">6dp</dimen>
+    <dimen name="padding_standard">8dp</dimen>
+    <dimen name="padding_ssmedium">10dp</dimen>
+    <dimen name="padding_smedium">12dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="padding_xmedium">20dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+    <dimen name="padding_bottom_nav">26dp</dimen>
+    <dimen name="padding_xlarge">32dp</dimen>
+    <dimen name="padding_xxlarge">40dp</dimen>
+    <dimen name="padding_xxxlarge">42dp</dimen>
+    <dimen name="padding_xxxxlarge">48dp</dimen>
+    <dimen name="padding_xxxxxlarge">56dp</dimen>
+    <dimen name="padding_xxxxxxlarge">80dp</dimen>
+
+    <!-- TEXT SIZE -->
+    <dimen name="text_size_xxsmall">9sp</dimen>
+    <dimen name="text_size_xsmall">10sp</dimen>
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_standard">14sp</dimen>
+    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_xmedium">18sp</dimen>
+    <dimen name="text_size_large">20sp</dimen>
+    <dimen name="text_size_xlarge">22sp</dimen>
+    <dimen name="text_size_xxlarge">24sp</dimen>
+    <dimen name="text_size_xxllarge">25sp</dimen>
+    <dimen name="text_size_xxxlarge">28sp</dimen>
+    <dimen name="text_size_xxxxlarge">32sp</dimen>
+
+    <!-- RADIUS -->
+    <dimen name="corner_radius_xxxxxsmall">2dp</dimen>
+    <dimen name="corner_radius_xxxxsmall">4dp</dimen>
+    <dimen name="corner_radius_xxxsmall">6dp</dimen>
+    <dimen name="corner_radius_xxsmall">8dp</dimen>
+    <dimen name="corner_radius_xhsmall">10dp</dimen>
+    <dimen name="corner_radius_xsmall">14dp</dimen>
+    <dimen name="corner_radius_small">16dp</dimen>
+    <dimen name="corner_radius_xstandard">18dp</dimen>
+    <dimen name="corner_radius_standard">24dp</dimen>
+    <dimen name="corner_radius_medium">30dp</dimen>
+    <dimen name="corner_radius_xmedium">32dp</dimen>
+    <dimen name="corner_radius_large">38dp</dimen>
+    <dimen name="corner_radius_xxlarge">48dp</dimen>
+</resources>
