@@ -1,0 +1,31 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.Visuals" parent="Theme.MaterialComponents.Light">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/md_blue_500</item> <!-- blue -->
+        <item name="colorPrimaryVariant">@color/md_blue_700</item> <!-- darker shade of blue -->
+        <item name="colorOnPrimary">@color/md_white_1000</item> <!-- white -->
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/md_amber_500</item> <!-- light orange -->
+        <item name="colorSecondaryVariant">@color/md_amber_700</item> <!-- darker shade of orange -->
+        <item name="colorOnSecondary">@color/md_black_1000</item> <!-- black -->
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+    </style>
+
+    <style name="Theme.Visuals.NoActionBar" parent="Theme.MaterialComponents.Light">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/md_blue_500</item> <!-- blue -->
+        <item name="colorPrimaryVariant">@color/md_blue_700</item> <!-- darker shade of blue -->
+        <item name="colorOnPrimary">@color/md_white_1000</item> <!-- white -->
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/md_amber_500</item> <!-- light orange -->
+        <item name="colorSecondaryVariant">@color/md_amber_700</item> <!-- darker shade of orange -->
+        <item name="colorOnSecondary">@color/md_black_1000</item> <!-- black -->
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+        <item name="windowNoTitle">true</item>
+    </style>
+</resources>
