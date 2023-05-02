@@ -12,11 +12,20 @@
         <action
             android:id="@+id/action_mapFragment_to_primaryChangeAccountDialogFragment"
             app:destination="@id/primaryChangeAccountDialogFragment" />
+        <action
+            android:id="@+id/action_mapFragment_to_settingsDialogFragment"
+            app:destination="@id/settingsDialogFragment" />
     </fragment>
 
     <dialog
         android:id="@+id/primaryChangeAccountDialogFragment"
         android:name="com.uc.ccs.visuals.fragments.main.SignListDialogFragment"
         android:label="PrimaryChangeAccountDialogFragment">
+    </dialog>
+
+    <dialog
+        android:id="@+id/settingsDialogFragment"
+        android:name="com.uc.ccs.visuals.fragments.main.SettingsDialogFragment"
+        android:label="settingsDialogFragment">
     </dialog>
 </navigation>

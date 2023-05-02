@@ -4,14 +4,19 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RelativeLayout
 import android.widget.Toast
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.findNavController
+import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -20,8 +25,13 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentMapBinding
+import com.uc.ccs.visuals.fragments.utils.dpToPx
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 
@@ -32,18 +42,39 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var binding: FragmentMapBinding
 
     private lateinit var viewModel: MapViewModel
+    private lateinit var mapFragment: SupportMapFragment
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
+        Places.initialize(requireContext(), resources.getString(R.string.google_map_api_key));
+
         binding = FragmentMapBinding.inflate(inflater, container, false)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.onCreate(savedInstanceState)
         mapFragment.getMapAsync(this)
 
         binding.bottomNavView.background = null
+
+        // Initialize AutocompleteSupportFragment
+        val autocompleteFragment = AutocompleteSupportFragment.newInstance()
+        autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
+        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+            override fun onPlaceSelected(place: Place) {
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng, 12f))
+            }
+
+            override fun onError(status: Status) {
+                Toast.makeText(requireContext(), "Error: ${status.statusMessage}", Toast.LENGTH_SHORT).show()
+            }
+        })
+
+        childFragmentManager.beginTransaction()
+            .replace(R.id.cl_actv_container, autocompleteFragment)
+            .commit()
 
         return binding.root
     }
@@ -52,14 +83,29 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         super.onActivityCreated(savedInstanceState)
         //viewModel = ViewModelProvider(this).get(MapViewModel::class.java)
 
-        binding.bottomNavView.setOnItemSelectedListener {
+
+       binding.setupViews()
+    }
+
+    private fun FragmentMapBinding.setupViews() {
+        bottomNavView.setOnItemSelectedListener {
             when (it.itemId) {
-                R.id.menu_home -> {true}
-                else -> {
+                R.id.menu_home -> {
+                    true
+                }
+                R.id.menu_notif -> {
                     findNavController().navigate(R.id.action_mapFragment_to_primaryChangeAccountDialogFragment)
                     true
                 }
+                else -> {
+                    findNavController().navigate(R.id.action_mapFragment_to_settingsDialogFragment)
+                    true
+                }
             }
+        }
+
+        fabMyLocation.setOnClickListener {
+            enableMyLocation()
         }
     }
 
@@ -72,10 +118,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             mMap.isMyLocationEnabled = true
+            mMap.uiSettings.isMyLocationButtonEnabled = false
             fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                 location?.let {
                     val currentLatLng = LatLng(location.latitude, location.longitude)
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, CAMERA_ZOOM))
                 }
             }
         } else {
@@ -92,6 +139,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             LOCATION_PERMISSION_REQUEST_CODE -> {
                 if (grantResults.contains(PackageManager.PERMISSION_GRANTED)) {
                     enableMyLocation()
+                    onMapReady(mMap)
                 } else {
                     Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
                 }
@@ -109,9 +157,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
             location?.let {
                 val currentLatLng = LatLng(location.latitude, location.longitude)
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 12f))
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, CAMERA_ZOOM))
             }
         }
     }
 
 }
+
+const val CAMERA_ZOOM = 12f

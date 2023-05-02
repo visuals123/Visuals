@@ -22,31 +22,17 @@
             app:layout_constraintEnd_toEndOf="parent">
 
             <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cl_actv_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/til_destination"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/field_height"
-                    android:layout_weight="1"
-                    android:hint="@string/destination"
-                    style="Widget.App.MapFields"
-                    app:boxBackgroundMode="none"
-                    android:textAlignment="center"
-                    android:paddingBottom="@dimen/padding_small"
-                    android:layout_marginHorizontal="@dimen/margin_standard"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent">
 
                     <AutoCompleteTextView
                         android:id="@+id/actv_destination"
                         style="Widget.App.MapFields"
+                        android:textSize="@dimen/text_size_standard"
+                        android:background="@drawable/bg_autocomplete"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />
-                </com.google.android.material.textfield.TextInputLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -58,6 +44,18 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context=".MapsActivity" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_my_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_standard"
+            android:layout_marginBottom="@dimen/margin_xxxxxxlarge"
+            android:src="@drawable/ic_my_location"
+            app:layout_anchor="@id/map"
+            app:layout_anchorGravity="bottom|end"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
