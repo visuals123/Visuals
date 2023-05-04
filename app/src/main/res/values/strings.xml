@@ -17,4 +17,7 @@
     <string name="fullname">Fullname</string>
     <string name="already_a_member_login"><font fgcolor='#1565C0'>Already a member?</font> <b><font fgcolor='#0D47A1'>Login</font></b></string>
     <string name="create_naccount">Create \nAccount</string>
+    <string name="welcome_to_visuals"><font fgcolor='#1565C0'>Welcome to</font><b><font fgcolor='#1976D2'> VISUALS</font></b></string>
+    <string name="voice_integrated_signages_nwith_user_aid_leading_system">Voice Integrated Signages \nWith User Aid Leading System</string>
+    <string name="let_s_go">Let\'s Go</string>
 </resources>
