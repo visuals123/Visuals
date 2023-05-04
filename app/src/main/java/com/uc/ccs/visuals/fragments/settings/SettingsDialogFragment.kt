@@ -5,12 +5,16 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.uc.ccs.visuals.R
+import com.uc.ccs.visuals.databinding.FragmentSettingsDialogBinding
 import com.uc.ccs.visuals.databinding.FragmentSignListDialogListDialogBinding
 
 class SettingsDialogFragment : BottomSheetDialogFragment() {
 
-    private var _binding: FragmentSignListDialogListDialogBinding? = null
+    private var _binding: FragmentSettingsDialogBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -21,16 +25,15 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View? {
 
-        _binding = FragmentSignListDialogListDialogBinding.inflate(inflater, container, false)
+        _binding = FragmentSettingsDialogBinding.inflate(inflater, container, false)
         return binding.root
 
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        _binding?.list?.let {
-            it.apply {
-            }
-        }
+        childFragmentManager.beginTransaction()
+            .replace(R.id.fl_settings, SettingsFragment())
+            .commit()
     }
 
     override fun onStart() {
@@ -50,5 +53,19 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    class SettingsFragment : PreferenceFragmentCompat() {
+
+        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+            setPreferencesFromResource(R.xml.preference, rootKey)
+
+            // Listen for preference clicks
+            findPreference<Preference>("logout_preference")?.setOnPreferenceClickListener {
+                // Handle logout click
+                // ...
+                true
+            }
+        }
     }
 }

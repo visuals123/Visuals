@@ -52,6 +52,7 @@
             android:layout_marginEnd="@dimen/margin_standard"
             android:layout_marginBottom="@dimen/margin_xxxxxxlarge"
             android:src="@drawable/ic_my_location"
+            android:backgroundTint="@color/white"
             app:layout_anchor="@id/map"
             app:layout_anchorGravity="bottom|end"
             app:layout_constraintBottom_toBottomOf="parent"
