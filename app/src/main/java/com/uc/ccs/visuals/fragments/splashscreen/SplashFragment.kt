@@ -11,13 +11,12 @@ import androidx.navigation.fragment.findNavController
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSplashScreenBinding
 
-class SplashScreenFragment : Fragment() {
+class SplashFragment : Fragment() {
 
     private var _binding: FragmentSplashScreenBinding? = null
-    private val binding = _binding!!
+    private val binding get() = _binding!!
 
     private val SPLASH_TIME_OUT = 3000L // 3 seconds delay
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
