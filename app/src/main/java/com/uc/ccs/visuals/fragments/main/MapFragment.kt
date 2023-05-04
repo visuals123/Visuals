@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.RelativeLayout
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -37,12 +38,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var autocompleteFragment: AutocompleteSupportFragment
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
 
     private lateinit var binding: FragmentMapBinding
 
     private lateinit var viewModel: MapViewModel
     private lateinit var mapFragment: SupportMapFragment
+
+    private var counter = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -60,7 +64,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         binding.bottomNavView.background = null
 
         // Initialize AutocompleteSupportFragment
-        val autocompleteFragment = AutocompleteSupportFragment.newInstance()
+        autocompleteFragment = AutocompleteSupportFragment.newInstance()
         autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
         autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
@@ -83,6 +87,20 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         super.onActivityCreated(savedInstanceState)
         //viewModel = ViewModelProvider(this).get(MapViewModel::class.java)
 
+        childFragmentManager.beginTransaction()
+            .replace(R.id.cl_actv_container, autocompleteFragment)
+            .commit()
+
+        // Adding a callback on back pressed to replace the standard up navigation with popBackStack
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    counter++
+                    if(counter > ON_BACK_PRESSED_LIMIT_TO_FINISH)
+                        requireActivity().finish()
+                }
+            }
+        )
 
        binding.setupViews()
     }
@@ -165,3 +183,4 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 }
 
 const val CAMERA_ZOOM = 12f
+const val ON_BACK_PRESSED_LIMIT_TO_FINISH = 1
