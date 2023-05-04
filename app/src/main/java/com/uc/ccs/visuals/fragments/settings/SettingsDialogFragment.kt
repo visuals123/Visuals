@@ -1,17 +1,12 @@
-package com.uc.ccs.visuals.fragments.main
+package com.uc.ccs.visuals.fragments.settings
 
 import android.os.Bundle
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSignListDialogListDialogBinding
-import com.uc.ccs.visuals.databinding.FragmentSignListDialogListDialogItemBinding
 
 class SettingsDialogFragment : BottomSheetDialogFragment() {
 

@@ -14,15 +14,6 @@ import com.uc.ccs.visuals.databinding.FragmentSignListDialogListDialogBinding
 import com.uc.ccs.visuals.databinding.FragmentSignListDialogListDialogItemBinding
 const val ARG_ITEM_COUNT = "item_count"
 
-/**
- *
- * A fragment that shows a list of items as a modal bottom sheet.
- *
- * You can show this modal bottom sheet from your activity like this:
- * <pre>
- *    SignListDialogFragment.newInstance(30).show(supportFragmentManager, "dialog")
- * </pre>
- */
 class SignListDialogFragment : BottomSheetDialogFragment() {
 
     private var _binding: FragmentSignListDialogListDialogBinding? = null

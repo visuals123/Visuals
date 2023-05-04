@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/navigation"
-    app:startDestination="@id/mapFragment">
+    app:startDestination="@id/loginFragment">
+
     <fragment
         android:id="@+id/mapFragment"
         android:name="com.uc.ccs.visuals.fragments.main.MapFragment"
@@ -25,7 +26,32 @@
 
     <dialog
         android:id="@+id/settingsDialogFragment"
-        android:name="com.uc.ccs.visuals.fragments.main.SettingsDialogFragment"
+        android:name="com.uc.ccs.visuals.fragments.settings.SettingsDialogFragment"
         android:label="settingsDialogFragment">
     </dialog>
+
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.uc.ccs.visuals.fragments.login.LoginFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login" >
+        <action
+            android:id="@+id/action_loginFragment_to_splashScreenFragment"
+            app:destination="@id/splashScreenFragment"
+            app:popUpTo="@id/mapFragment"
+            app:popUpToInclusive="false" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/splashScreenFragment"
+        android:name="com.uc.ccs.visuals.fragments.splashscreen.SplashFragment"
+        android:label="fragment_splash_screen"
+        tools:layout="@layout/fragment_splash_screen" >
+        <action
+            android:id="@+id/action_splashScreenFragment_to_mapFragment"
+            app:destination="@id/mapFragment"
+            app:popUpTo="@id/mapFragment"
+            app:popUpToInclusive="false" />
+    </fragment>
+
 </navigation>
