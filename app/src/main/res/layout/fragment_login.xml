@@ -113,6 +113,7 @@
                         android:textSize="16sp" />
 
                     <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tv_to_signup"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textAlignment="center"

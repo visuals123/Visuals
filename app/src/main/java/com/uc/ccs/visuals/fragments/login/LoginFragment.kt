@@ -6,7 +6,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.OnBackPressedCallback
 import androidx.navigation.fragment.findNavController
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentLoginBinding
@@ -41,6 +40,10 @@ class LoginFragment : Fragment() {
 
             btnLogin.setOnClickListener {
                 findNavController().navigate(R.id.action_loginFragment_to_splashScreenFragment)
+            }
+
+            tvToSignup.setOnClickListener {
+                findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
             }
 
 

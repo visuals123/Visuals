@@ -6,13 +6,14 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import com.uc.ccs.visuals.R
+import com.uc.ccs.visuals.databinding.FragmentSignupBinding
 
 class SignupFragment : Fragment() {
 
-    companion object {
-        fun newInstance() = SignupFragment()
-    }
+    private var _binding: FragmentSignupBinding? = null
+    private val binding get() = _binding!!
 
     private lateinit var viewModel: SignupViewModel
 
@@ -20,13 +21,24 @@ class SignupFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_signup, container, false)
+
+        _binding = FragmentSignupBinding.inflate(inflater, container, false)
+
+        return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this).get(SignupViewModel::class.java)
-        // TODO: Use the ViewModel
+
+        binding.setupViews()
+
+    }
+
+    private fun FragmentSignupBinding.setupViews() {
+        tvToLogin.setOnClickListener {
+            findNavController().navigate(R.id.action_signupFragment_to_loginFragment)
+        }
     }
 
 }
