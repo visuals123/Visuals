@@ -1,16 +1,18 @@
-package com.uc.ccs.visuals.fragments.settings
+package com.uc.ccs.visuals.screens.settings
 
 import android.os.Bundle
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSettingsDialogBinding
 import com.uc.ccs.visuals.databinding.FragmentSignListDialogListDialogBinding
+import com.uc.ccs.visuals.screens.auth.FirebaseAuthManager
 
 class SettingsDialogFragment : BottomSheetDialogFragment() {
 
@@ -63,7 +65,8 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
             // Listen for preference clicks
             findPreference<Preference>("logout_preference")?.setOnPreferenceClickListener {
                 // Handle logout click
-                // ...
+                FirebaseAuthManager.signOut()
+                findNavController().navigate(R.id.action_settingsDialogFragment_to_loginFragment)
                 true
             }
         }

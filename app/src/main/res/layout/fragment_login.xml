@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".fragments.login.LoginFragment">
+    tools:context=".screens.login.LoginFragment">
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
@@ -95,7 +95,7 @@
                         android:drawablePadding="10dp"
                         android:ems="10"
                         android:hint="@string/password"
-                        android:inputType="textPersonName"
+                        android:inputType="textPassword"
                         android:paddingStart="20dp"
                         android:textColorHint="#000000"
                         android:textSize="16sp" />
@@ -119,6 +119,39 @@
                         android:textAlignment="center"
                         android:textColor="@color/black"
                         android:text="@string/don_t_have_an_account_sign_up"/>
+
+                    <View
+                        android:layout_width="200dp"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="@dimen/margin_standard"
+                        android:visibility="gone"
+                        android:background="@color/md_blue_grey_500"/>
+
+                    <androidx.appcompat.widget.LinearLayoutCompat
+                        android:id="@+id/btn_login_with_google"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_standard"
+                        android:layout_marginHorizontal="@dimen/margin_standard"
+                        android:gravity="center"
+                        android:visibility="gone"
+                        android:layout_gravity="center"
+                        android:orientation="horizontal">
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/common_google_signin_btn_icon_light"/>
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/margin_small"
+                            android:textColor="@color/black"
+                            android:text="@string/signin_with_google"/>
+
+                    </androidx.appcompat.widget.LinearLayoutCompat>
+
 
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>

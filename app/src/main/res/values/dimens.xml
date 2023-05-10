@@ -2,6 +2,7 @@
 <resources>
     <dimen name="field_height">60dp</dimen>
     <dimen name="card_elevation">15dp</dimen>
+    <dimen name="card_elevation_small">2dp</dimen>
 
     <!-- MARGINS -->
     <dimen name="margin_novalue">0dp</dimen>

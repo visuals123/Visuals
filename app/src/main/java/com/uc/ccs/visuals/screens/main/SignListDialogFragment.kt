@@ -1,4 +1,4 @@
-package com.uc.ccs.visuals.fragments.main
+package com.uc.ccs.visuals.screens.main
 
 import android.os.Bundle
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment

@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/mapFragment"
-        android:name="com.uc.ccs.visuals.fragments.main.MapFragment"
+        android:name="com.uc.ccs.visuals.screens.main.MapFragment"
         android:label="fragment_map"
         tools:layout="@layout/fragment_map" >
         <action
@@ -20,19 +20,24 @@
 
     <dialog
         android:id="@+id/primaryChangeAccountDialogFragment"
-        android:name="com.uc.ccs.visuals.fragments.main.SignListDialogFragment"
+        android:name="com.uc.ccs.visuals.screens.main.SignListDialogFragment"
         android:label="PrimaryChangeAccountDialogFragment">
     </dialog>
 
     <dialog
         android:id="@+id/settingsDialogFragment"
-        android:name="com.uc.ccs.visuals.fragments.settings.SettingsDialogFragment"
+        android:name="com.uc.ccs.visuals.screens.settings.SettingsDialogFragment"
         android:label="settingsDialogFragment">
+        <action
+            android:id="@+id/action_settingsDialogFragment_to_loginFragment"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
     </dialog>
 
     <fragment
         android:id="@+id/loginFragment"
-        android:name="com.uc.ccs.visuals.fragments.login.LoginFragment"
+        android:name="com.uc.ccs.visuals.screens.login.LoginFragment"
         android:label="fragment_login"
         tools:layout="@layout/fragment_login" >
         <action
@@ -47,16 +52,19 @@
 
     <fragment
         android:id="@+id/splashScreenFragment"
-        android:name="com.uc.ccs.visuals.fragments.splashscreen.SplashFragment"
+        android:name="com.uc.ccs.visuals.screens.splashscreen.SplashFragment"
         android:label="fragment_splash_screen"
         tools:layout="@layout/fragment_splash_screen" >
         <action
             android:id="@+id/action_splashScreenFragment_to_introFragment"
             app:destination="@id/introFragment" />
+        <action
+            android:id="@+id/action_splashScreenFragment_to_mapFragment"
+            app:destination="@id/mapFragment" />
     </fragment>
     <fragment
         android:id="@+id/signupFragment"
-        android:name="com.uc.ccs.visuals.fragments.signup.SignupFragment"
+        android:name="com.uc.ccs.visuals.screens.signup.SignupFragment"
         android:label="fragment_signup"
         tools:layout="@layout/fragment_signup" >
         <action
@@ -64,10 +72,13 @@
             app:destination="@id/loginFragment"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_signupFragment_to_splashScreenFragment"
+            app:destination="@id/splashScreenFragment" />
     </fragment>
     <fragment
         android:id="@+id/introFragment"
-        android:name="com.uc.ccs.visuals.fragments.intro.IntroFragment"
+        android:name="com.uc.ccs.visuals.screens.intro.IntroFragment"
         android:label="fragment_intro"
         tools:layout="@layout/fragment_intro" >
         <action

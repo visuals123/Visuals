@@ -1,4 +1,4 @@
-package com.uc.ccs.visuals.fragments.main
+package com.uc.ccs.visuals.screens.main
 
 import androidx.lifecycle.ViewModel
 

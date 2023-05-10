@@ -1,4 +1,4 @@
-package com.uc.ccs.visuals.fragments.main
+package com.uc.ccs.visuals.screens.main
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -32,7 +32,7 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentMapBinding
-import com.uc.ccs.visuals.fragments.utils.dpToPx
+import com.uc.ccs.visuals.screens.utils.dpToPx
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 

@@ -1,4 +1,4 @@
-package com.uc.ccs.visuals.fragments.splashscreen
+package com.uc.ccs.visuals.screens.splashscreen
 
 import android.os.Bundle
 import android.os.Handler
@@ -8,13 +8,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.auth.FirebaseAuth
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSplashScreenBinding
+import com.uc.ccs.visuals.screens.auth.FirebaseAuthManager
+import com.uc.ccs.visuals.screens.login.LoginViewModel
+
+data class Person(var name: String, var address: String, var age: Int)
 
 class SplashFragment : Fragment() {
 
     private var _binding: FragmentSplashScreenBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var loginViewModel: LoginViewModel
 
     private val SPLASH_TIME_OUT = 3000L // 3 seconds delay
 
@@ -32,7 +39,11 @@ class SplashFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         Handler(Looper.getMainLooper()).postDelayed({
-                  findNavController().navigate(R.id.action_splashScreenFragment_to_introFragment)
+            val currentUser = FirebaseAuthManager.getCurrentUser()
+            if (currentUser != null) {
+                findNavController().navigate(R.id.action_splashScreenFragment_to_mapFragment)
+            }
+            else { findNavController().navigate(R.id.action_splashScreenFragment_to_introFragment) }
         }, SPLASH_TIME_OUT)
 
     }

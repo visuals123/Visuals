@@ -1,44 +1,43 @@
-package com.uc.ccs.visuals.fragments.signup
+package com.uc.ccs.visuals.screens.intro
 
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
+import androidx.viewbinding.ViewBinding
 import com.uc.ccs.visuals.R
-import com.uc.ccs.visuals.databinding.FragmentSignupBinding
+import com.uc.ccs.visuals.databinding.FragmentIntroBinding
+import com.uc.ccs.visuals.databinding.FragmentSplashScreenBinding
 
-class SignupFragment : Fragment() {
+class IntroFragment : Fragment() {
 
-    private var _binding: FragmentSignupBinding? = null
+    private var _binding: FragmentIntroBinding? = null
     private val binding get() = _binding!!
-
-    private lateinit var viewModel: SignupViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        // Inflate the layout for this fragment
 
-        _binding = FragmentSignupBinding.inflate(inflater, container, false)
+        _binding = FragmentIntroBinding.inflate(inflater, container, false)
 
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this).get(SignupViewModel::class.java)
 
         binding.setupViews()
-
     }
 
-    private fun FragmentSignupBinding.setupViews() {
-        tvToLogin.setOnClickListener {
-            findNavController().navigate(R.id.action_signupFragment_to_loginFragment)
+    private fun FragmentIntroBinding.setupViews() {
+        tvLetsGo.setOnClickListener {
+            findNavController().navigate(R.id.action_introFragment_to_mapFragment)
         }
     }
+
 
 }

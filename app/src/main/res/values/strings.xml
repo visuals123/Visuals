@@ -1,14 +1,13 @@
 <resources>
     <string name="app_name">Visuals</string>
     <string name="title_activity_maps">MapsActivity</string>
-    <string name="google_map_api_key">AIzaSyC08WpSeveityqvO2FGAyAmqpkKu01_4WA</string>
+
     <string name="location">Location</string>
     <string name="destination">Destination</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="login">Login</string>
     <string name="don_t_have_an_account_sign_up"><font fgcolor='#1565C0'>Don\'t have an account?</font> <b><font fgcolor='#0D47A1'>Sign Up</font></b></string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="visuals">VISUALS</string>
     <string name="sign_up">Sign up</string>
@@ -16,8 +15,22 @@
     <string name="phone_number">Phone Number</string>
     <string name="fullname">Fullname</string>
     <string name="already_a_member_login"><font fgcolor='#1565C0'>Already a member?</font> <b><font fgcolor='#0D47A1'>Login</font></b></string>
-    <string name="create_naccount">Create \nAccount</string>
+    <string name="create_naccount">Create Account</string>
     <string name="welcome_to_visuals"><font fgcolor='#1565C0'>Welcome to</font><b><font fgcolor='#1976D2'> VISUALS</font></b></string>
     <string name="voice_integrated_signages_nwith_user_aid_leading_system">Voice Integrated Signages \nWith User Aid Leading System</string>
     <string name="let_s_go">Let\'s Go</string>
+
+    <string name="signin_with_google">Signin with Google</string>
+    <string name="google_map_api_key">AIzaSyC08WpSeveityqvO2FGAyAmqpkKu01_4WA</string>
+    <string name="server_client_id">1099201395210-6t9740dtdipp2ff74f79ih9ekmv758hf.apps.googleusercontent.com</string>
+    <string name="lastname">Lastname</string>
+    <string name="firstname">Firstname</string>
+    <string name="type_your_password">Type Your Password</string>
+
+    <!-- errors  -->
+    <string name="login_error_message">Incorrect email or password. Please try again.</string>
+    <string name="please_fill_in_all_required_fields">Please fill in all required fields</string>
+    <string name="password_do_not_match">Passwords do not match. Please try again.</string>
+    <string name="type_your_email">Type your Email</string>
+    <string name="retype_your_password">Retype Your Password</string>
 </resources>
