@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.FirebaseFirestore
-import com.uc.ccs.visuals.screens.auth.FirebaseAuthManager
+import com.uc.ccs.visuals.utils.auth.FirebaseAuthManager
 
 class SignupViewModel : ViewModel() {
     private val _signupState = MutableLiveData<SignupState>()

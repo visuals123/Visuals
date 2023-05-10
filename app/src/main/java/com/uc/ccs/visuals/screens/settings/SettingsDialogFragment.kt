@@ -12,7 +12,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSettingsDialogBinding
 import com.uc.ccs.visuals.databinding.FragmentSignListDialogListDialogBinding
-import com.uc.ccs.visuals.screens.auth.FirebaseAuthManager
+import com.uc.ccs.visuals.utils.auth.FirebaseAuthManager
 
 class SettingsDialogFragment : BottomSheetDialogFragment() {
 

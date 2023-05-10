@@ -1,4 +1,4 @@
-package com.uc.ccs.visuals.screens.auth
+package com.uc.ccs.visuals.utils.auth
 
 import androidx.lifecycle.ViewModel
 

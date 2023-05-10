@@ -27,7 +27,8 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentLoginBinding
-import com.uc.ccs.visuals.screens.auth.FirebaseAuthManager
+import com.uc.ccs.visuals.utils.auth.FirebaseAuthManager
+import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
 
 class LoginFragment : Fragment() {
 

@@ -1,4 +1,4 @@
-package com.uc.ccs.visuals.screens.utils
+package com.uc.ccs.visuals.utils
 
 import android.content.res.Resources
 

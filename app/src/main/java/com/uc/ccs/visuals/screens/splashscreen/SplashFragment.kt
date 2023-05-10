@@ -11,8 +11,9 @@ import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSplashScreenBinding
-import com.uc.ccs.visuals.screens.auth.FirebaseAuthManager
+import com.uc.ccs.visuals.utils.auth.FirebaseAuthManager
 import com.uc.ccs.visuals.screens.login.LoginViewModel
+import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
 
 data class Person(var name: String, var address: String, var age: Int)
 
@@ -38,12 +39,15 @@ class SplashFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val isFirstLogin = SharedPreferenceManager.isFirstLogin(requireContext())
+
         Handler(Looper.getMainLooper()).postDelayed({
             val currentUser = FirebaseAuthManager.getCurrentUser()
-            if (currentUser != null) {
-                findNavController().navigate(R.id.action_splashScreenFragment_to_mapFragment)
+            if (currentUser != null && isFirstLogin) {
+                SharedPreferenceManager.setFirstLogin(requireContext(), false)
+                findNavController().navigate(R.id.action_splashScreenFragment_to_introFragment)
             }
-            else { findNavController().navigate(R.id.action_splashScreenFragment_to_introFragment) }
+            else { findNavController().navigate(R.id.action_splashScreenFragment_to_mapFragment)}
         }, SPLASH_TIME_OUT)
 
     }
