@@ -1,4 +1,4 @@
-package com.uc.ccs.visuals.models
+package com.uc.ccs.visuals.screens.main.models
 
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.LatLng

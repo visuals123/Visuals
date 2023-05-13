@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.Status
@@ -30,7 +31,9 @@ import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentMapBinding
-import com.uc.ccs.visuals.models.MarkerInfo
+import com.uc.ccs.visuals.screens.main.adapter.ViewPagerAdapter
+import com.uc.ccs.visuals.screens.main.models.MarkerInfo
+import com.uc.ccs.visuals.screens.main.models.ViewPagerItem
 
 class MapFragment : Fragment(), OnMapReadyCallback {
 
@@ -66,7 +69,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
         autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
             override fun onPlaceSelected(place: Place) {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng, 12f))
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng, CAMERA_ZOOM))
             }
 
             override fun onError(status: Status) {
@@ -104,6 +107,21 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun FragmentMapBinding.setupViews() {
+
+        val items = listOf(
+            ViewPagerItem(R.drawable.ic_road_sign_1, "Title 1", "Description 1","5 meters"),
+            ViewPagerItem(R.drawable.ic_road_sign_1, "Title 2", "Description 2","5 meters"),
+            ViewPagerItem(R.drawable.ic_road_sign_1, "Title 3", "Description 3","5 meters")
+        )
+
+        val adapter = ViewPagerAdapter(requireContext(), items) {
+            clViewpagerContainer.isVisible = false
+        }
+
+        viewPager.adapter = adapter
+
+        circleIndicator.setViewPager(viewPager)
+
         bottomNavView.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.menu_home -> {
@@ -138,7 +156,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                 location?.let {
                     val currentLatLng = LatLng(location.latitude, location.longitude)
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, CAMERA_ZOOM))
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, CAMERA_ZOOM_DEFAULT))
                     addMarksToMap(currentLatLng)
                 }
             }
@@ -328,5 +346,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
 }
 
-const val CAMERA_ZOOM = 12f
+const val CAMERA_ZOOM = 20f
+const val CAMERA_ZOOM_DEFAULT = 12f
 const val ON_BACK_PRESSED_LIMIT_TO_FINISH = 1
