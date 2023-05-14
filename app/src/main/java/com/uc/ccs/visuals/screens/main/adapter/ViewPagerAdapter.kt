@@ -5,10 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.viewpager.widget.PagerAdapter
+import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.ViewPagerItemBinding
-import com.uc.ccs.visuals.screens.main.models.ViewPagerItem
+import com.uc.ccs.visuals.screens.main.models.MarkerInfo
 
-class ViewPagerAdapter(private val context: Context, private val items: List<ViewPagerItem>,
+class ViewPagerAdapter(private val context: Context, private val items: List<MarkerInfo>,
                        val onClick: () -> Unit
 ) : PagerAdapter() {
 
@@ -22,8 +23,8 @@ class ViewPagerAdapter(private val context: Context, private val items: List<Vie
         val item = items[position]
 
         with(binding) {
-            iconImageView.setImageResource(item.icon)
-            tvDistance.text = item.distance
+            iconImageView.setImageResource(R.drawable.ic_road_sign_1)
+            tvDistance.text = formatDistance(item.distance)
             tvTitle.text = item.title
             tvDescription.text = item.description
 
@@ -35,6 +36,12 @@ class ViewPagerAdapter(private val context: Context, private val items: List<Vie
         }
 
         return binding.root
+    }
+
+    private fun formatDistance(distance: Double): String {
+        if (distance > 1)
+            return kotlin.math.ceil(distance).toInt().toString().plus(" Meters")
+        return kotlin.math.ceil(distance).toInt().toString().plus(" Meter")
     }
 
     override fun destroyItem(container: ViewGroup, position: Int, obj: Any) {

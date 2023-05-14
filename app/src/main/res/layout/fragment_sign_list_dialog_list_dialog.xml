@@ -23,7 +23,9 @@
             android:textSize="@dimen/text_size_large"
             android:textColor="@color/black"
             android:layout_marginTop="@dimen/margin_standard"
-            android:text="Notifications"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            android:text="@string/notifications"
             app:layout_constraintTop_toTopOf="parent"/>
 
         <androidx.recyclerview.widget.RecyclerView
