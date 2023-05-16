@@ -12,6 +12,10 @@ class LoginViewModel : ViewModel() {
 
     fun login(email: String, password: String) {
         val currentUser = FirebaseAuthManager.getCurrentUser()
+        if (email.isBlank() || password.isBlank()) {
+            _authenticationState.postValue(AuthenticationState.InvalidAuthentication)
+            return
+        }
 
         if (currentUser != null) {
             _authenticationState.value = AuthenticationState.Authenticated
