@@ -34,4 +34,29 @@
     <string name="type_your_email">Type your Email</string>
     <string name="retype_your_password">Retype Your Password</string>
     <string name="notifications">Notifications</string>
+
+    <!-- settings -->
+    <string name="language_category">Speech Language</string>
+    <string name="select_language">Select Language</string>
+    <string name="default_language">English</string>
+    <string name="category_language">Filipino</string>
+    <string name="category_general">General</string>
+    <string name="category_import">External Data</string>
+    <string name="text_import">Import</string>
+    <string name="speech_summary">Choose a language from the options provided, and your selection will be saved automatically. The default language is set to English.</string>
+    <string name="csv_import_summary">Import CSV file</string>
+    <string name="logout">Logout</string>
+
+    <string-array name="language_entries">
+        <item>English</item>
+        <item>Tagalog</item>
+        <!-- Add more languages as needed -->
+    </string-array>
+
+    <string-array name="language_values">
+        <item>en</item>
+        <item>tl</item>
+        <!-- Add more language codes as needed -->
+    </string-array>
+
 </resources>

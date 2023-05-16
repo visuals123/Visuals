@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -36,8 +37,9 @@ import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentMapBinding
 import com.uc.ccs.visuals.screens.main.adapter.ViewPagerAdapter
 import com.uc.ccs.visuals.screens.main.models.MarkerInfo
+import java.util.Locale
 
-class MapFragment : Fragment(), OnMapReadyCallback {
+class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -48,6 +50,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var viewModel: MapViewModel
     private lateinit var mapFragment: SupportMapFragment
+
+    private var tts: TextToSpeech? = null
 
     private var counter = 0
 
@@ -84,6 +88,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         childFragmentManager.beginTransaction()
             .replace(R.id.cl_actv_container, autocompleteFragment)
             .commit()
+
+        tts = TextToSpeech(requireContext(), this)
 
         return binding.root
     }
@@ -151,10 +157,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
 
             mMap.setOnMarkerClickListener { marker ->
-//                val customInfo = marker.title
-//                if (customInfo != null) {
-//                    binding.bottomNavView.selectedItemId = R.id.menu_notif
-//                }
+
+                /**
+                 * will use once we need to trap the on markers clicked
+                 *
+                 * val customInfo = marker.title
+                    if (customInfo != null) {
+                        binding.bottomNavView.selectedItemId = R.id.menu_notif
+                    }
+                */
 
                 binding.bottomNavView.selectedItemId = R.id.menu_notif
 
@@ -188,16 +199,20 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         with(binding) {
             viewModel.markers.observe(viewLifecycleOwner) { markers ->
                 val withinRadius = markers?.filter { it.isWithinRadius }?.sortedBy { it.isWithinRadius } ?: return@observe
-                Log.d("qweqwe", "setupViewPager markers: ${markers.size} == ${markers}")
-                Log.d("qweqwe", "setupViewPager: ${withinRadius.size} == ${withinRadius}")
                 val adapter = ViewPagerAdapter(requireContext(),withinRadius ) {
                     clViewpagerContainer.isVisible = false
                 }
 
                 viewPager.adapter = adapter
 
-                clViewpagerContainer.isVisible = withinRadius.size > 1
-                circleIndicator.isVisible = withinRadius.size > 1
+                val hasMultipleMarker = withinRadius.size > 1
+                if (hasMultipleMarker) {
+                    speakOut(NotificationMessage.getRandomMessageForMultipleSigns("5"))
+                } else {
+                    speakOut(NotificationMessage.getRandomMessageForSingleSign("10","Stop"))
+                }
+                clViewpagerContainer.isVisible = hasMultipleMarker
+                circleIndicator.isVisible = hasMultipleMarker
                 circleIndicator.setViewPager(viewPager)
             }
         }
@@ -375,6 +390,25 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         return LatLng(offsetLatDegrees, offsetLngDegrees)
     }
 
+    private fun speakOut(message: String) {
+        tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+            override fun onDone(utteranceId: String?) {
+                // TTS is done speaking
+                // You can perform any desired action here
+            }
+
+            override fun onError(utteranceId: String?) {
+                // Error occurred while speaking, handle the error
+            }
+
+            override fun onStart(utteranceId: String?) {
+                // TTS started speaking
+                // You can perform any desired action here
+            }
+        })
+        tts!!.speak(message, TextToSpeech.QUEUE_FLUSH, null,"")
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
             LOCATION_PERMISSION_REQUEST_CODE -> {
@@ -389,7 +423,59 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    override fun onInit(p0: Int) {
+        if (p0 == TextToSpeech.SUCCESS) {
+            val result = tts!!.setLanguage(TtsLanguage.US_ENGLISH.locale)
+
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("tts","The Language not supported!")
+            } else {
+                Log.e("tts","The Language supported!")
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (tts != null) {
+            tts!!.stop()
+            tts!!.shutdown()
+        }
+    }
+
 }
+
+enum class TtsLanguage(val locale: Locale) {
+    FILIPINO(Locale("fil", "PH")),
+    US_ENGLISH(Locale("en", "US"))
+}
+
+enum class NotificationMessage(val template: String) {
+    CAUTION("Caution: There's a multiple road sign distance meters away, please stay alert."),
+    ATTENTION("Attention: Multiple road sign is distance meters ahead, watch out!"),
+    ALERT("Alert: Be prepared for a multiple road sign distance meters nearby. Take necessary action."),
+    NOTICE("Notice: Look out for a multiple road sign distance meters from your location. Ensure you're following the instructions."),
+    WARNING("Attention: There are multiple road signs located distance meters ahead. Please stay alert and pay close attention to these signs as they contain important information. You can find more details on the screen below."),
+    SIGN1("Road Sign: signName is distance meters away. Please pay attention."),
+    SIGN2("Road Sign: There's a signName road sign distance meters ahead. Take note of any instructions."),
+    SIGN3("Road Sign: Look out for a signName road sign distance meters from your location. Follow the indicated directions.");
+
+    companion object {
+        private val singleSignMessages = listOf(SIGN1, SIGN2, SIGN3)
+        private val multipleSignMessages = listOf(CAUTION, ATTENTION, ALERT, NOTICE, WARNING)
+
+        fun getRandomMessageForSingleSign(distance: String, signName: String): String {
+            val randomMessage = singleSignMessages.random()
+            return randomMessage.template.replace("distance", distance).replace("signName", signName)
+        }
+
+        fun getRandomMessageForMultipleSigns(distance: String): String {
+            val randomMessage = multipleSignMessages.random()
+            return randomMessage.template.replace("distance", distance)
+        }
+    }
+}
+
 
 const val CAMERA_ZOOM = 20f
 const val CAMERA_ZOOM_DEFAULT = 12f
