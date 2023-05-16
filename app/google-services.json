@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1099201395210",
+    "project_id": "visuals-c2541",
+    "storage_bucket": "visuals-c2541.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1099201395210:android:ae5f7555bbe4cb3e53fdf3",
+        "android_client_info": {
+          "package_name": "com.uc.ccs.visuals"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1099201395210-6t9740dtdipp2ff74f79ih9ekmv758hf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsAI0fmEjYBBFdV13iDF340xbklHwJA1k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1099201395210-6t9740dtdipp2ff74f79ih9ekmv758hf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
