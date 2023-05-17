@@ -3,7 +3,7 @@ package com.uc.ccs.visuals.screens.login
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.uc.ccs.visuals.utils.auth.FirebaseAuthManager
+import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
 
 class LoginViewModel : ViewModel() {
 

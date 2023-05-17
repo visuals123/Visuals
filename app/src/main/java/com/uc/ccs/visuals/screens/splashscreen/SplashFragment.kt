@@ -8,10 +8,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
-import com.google.firebase.auth.FirebaseAuth
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSplashScreenBinding
-import com.uc.ccs.visuals.utils.auth.FirebaseAuthManager
+import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
 import com.uc.ccs.visuals.screens.login.LoginViewModel
 import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
 

@@ -1,34 +1,17 @@
 package com.uc.ccs.visuals.screens.login
 
-import android.content.IntentSender
 import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.result.ActivityResultCallback
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContract
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.navigation.fragment.findNavController
-import com.google.android.gms.auth.api.credentials.CredentialRequest
-import com.google.android.gms.auth.api.credentials.Credentials
-import com.google.android.gms.auth.api.credentials.CredentialsOptions
-import com.google.android.gms.auth.api.identity.BeginSignInRequest
-import com.google.android.gms.auth.api.identity.Identity
-import com.google.android.gms.auth.api.identity.SignInClient
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.CommonStatusCodes
-import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentLoginBinding
-import com.uc.ccs.visuals.utils.auth.FirebaseAuthManager
-import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
+import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
 
 class LoginFragment : Fragment() {
 

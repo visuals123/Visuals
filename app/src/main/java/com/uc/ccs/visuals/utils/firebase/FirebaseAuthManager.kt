@@ -1,4 +1,4 @@
-package com.uc.ccs.visuals.utils.auth
+package com.uc.ccs.visuals.utils.firebase
 
 import com.google.firebase.auth.FirebaseAuth
 

@@ -46,6 +46,7 @@
     <string name="speech_summary">Choose a language from the options provided, and your selection will be saved automatically. The default language is set to English.</string>
     <string name="csv_import_summary">Import CSV file</string>
     <string name="logout">Logout</string>
+    <string name="successfully_uploaded">Successfully Uploaded</string>
 
     <string-array name="language_entries">
         <item>English</item>

@@ -4,22 +4,28 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.VolumeShaper.Operation
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSettingsDialogBinding
-import com.uc.ccs.visuals.utils.auth.FirebaseAuthManager
+import com.uc.ccs.visuals.screens.signup.SignupViewModel
+import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
+import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -27,10 +33,9 @@ import java.io.InputStreamReader
 class SettingsDialogFragment : BottomSheetDialogFragment() {
 
     private var _binding: FragmentSettingsDialogBinding? = null
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
+
+    private lateinit var firestoreViewModel: FirestoreViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,14 +43,33 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
     ): View? {
 
         _binding = FragmentSettingsDialogBinding.inflate(inflater, container, false)
+        firestoreViewModel = ViewModelProvider(requireActivity()).get(FirestoreViewModel::class.java)
+
         return binding.root
 
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         childFragmentManager.beginTransaction()
-            .replace(R.id.fl_settings, SettingsFragment())
+            .replace(R.id.fl_settings, SettingsFragment(firestoreViewModel))
             .commit()
+
+        with(firestoreViewModel) {
+            operationState.observe(viewLifecycleOwner) { state ->
+                when (state) {
+                    FirestoreViewModel.OperationState.Success -> {
+                        Toast.makeText(requireContext(), getString(R.string.successfully_uploaded), Toast.LENGTH_SHORT).show()
+                    }
+                    FirestoreViewModel.OperationState.Loading -> {
+                        //show loading dialog
+                    }
+                    is FirestoreViewModel.OperationState.Error -> {
+                        val exception = state.exception
+                        Toast.makeText(requireContext(), exception.localizedMessage, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
     }
 
     override fun onStart() {
@@ -67,7 +91,7 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
         _binding = null
     }
 
-    class SettingsFragment : PreferenceFragmentCompat() {
+     class SettingsFragment(private val firestoreViewModel: FirestoreViewModel) : PreferenceFragmentCompat() {
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.preference, rootKey)
@@ -82,12 +106,9 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
 
             findPreference<Preference>(getString(R.string.text_import))?.setOnPreferenceClickListener {
                 // Handle CSV import click
-                Log.d("qweqwe", "onCreatePreferences: 1")
                 if (isStoragePermissionGranted()) {
-                    Log.d("qweqwe", "onCreatePreferences: 2")
                     openFilePicker()
                 } else {
-                    Log.d("qweqwe", "onCreatePreferences: 3")
                     openFilePicker()
                 }
                 true
@@ -121,11 +142,11 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
             super.onActivityResult(requestCode, resultCode, data)
             if (requestCode == FILE_PICKER_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
                 val selectedFileUri: Uri? = data?.data
-                Log.d("qweqwe", selectedFileUri.toString())
                 selectedFileUri?.let {
                     val csvDataList = readCsvFile(selectedFileUri)
+                    firestoreViewModel.saveCsvData(data = csvDataList)
                     csvDataList.forEach { csvData ->
-                        Log.d("qweqwe", csvData.toString())
+
                     }
                 }
             }
@@ -138,19 +159,31 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
                 requireContext().contentResolver.openInputStream(fileUri)?.use { inputStream ->
                     BufferedReader(InputStreamReader(inputStream)).use { reader ->
                         var line: String?
-                        var isFirstLine = true
+                        var lineCount = 0
                         while (reader.readLine().also { line = it } != null) {
-                            if (isFirstLine) {
-                                isFirstLine = false
-                                continue // Skip header row
+                            if (lineCount < 2) {
+                                lineCount++
+                                continue // Skip rows
                             }
+
                             val csvFields = line?.split(",") ?: continue
-                            if (csvFields.size >= 4) { // Check if the row has at least 4 fields
+                            if (csvFields.size >= 6) { // Check if the row has at least 6 fields
+                                val id = csvFields[0].trim()
                                 val title = csvFields[1].trim()
-                                val position = csvFields[2].trim()
-                                val distance = csvFields[3].trim()
-                                val iconImageUrl = csvFields[4].trim()
-                                val csvData = CsvData(title, position, distance, iconImageUrl)
+                                val description = csvFields[2].trim()
+                                val lat = csvFields[3].trim().removePrefix("\"")
+                                val long = csvFields[4].trim().removeSuffix("\"")
+                                val distance = csvFields[5].trim()
+                                val iconImageUrl = csvFields[6].trim()
+
+                                val csvData = CsvData(
+                                    id = id,
+                                    title = title,
+                                    description = description,
+                                    position = "$lat-$long",
+                                    distance = distance,
+                                    iconImageUrl = iconImageUrl
+                                )
                                 csvDataList.add(csvData)
                             }
                         }
@@ -162,18 +195,19 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
 
             return csvDataList
         }
+    }
 
-
-        companion object {
-            private const val STORAGE_PERMISSION_REQUEST_CODE = 1
-            private const val FILE_PICKER_REQUEST_CODE = 2
-        }
+    companion object {
+        private const val STORAGE_PERMISSION_REQUEST_CODE = 1
+        private const val FILE_PICKER_REQUEST_CODE = 2
     }
 }
 
 data class CsvData(
+    val id: String,
     val title: String,
-    val position: String? = null,
+    val description: String,
+    val position: String,
     val distance: String,
     val iconImageUrl: String? = null
 )

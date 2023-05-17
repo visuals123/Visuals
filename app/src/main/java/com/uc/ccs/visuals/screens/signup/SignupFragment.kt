@@ -16,7 +16,8 @@ import com.uc.ccs.visuals.screens.signup.SignupViewModel
 data class User(
     val email: String,
     val firstName: String,
-    val lastName: String
+    val lastName: String,
+    val roles: Int = 2
 )
 
 class SignupFragment : Fragment() {
@@ -42,7 +43,7 @@ class SignupFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this).get(SignupViewModel::class.java)
+        viewModel = ViewModelProvider(requireActivity()).get(SignupViewModel::class.java)
 
         binding.setupViews()
         binding.observeSignupState()
