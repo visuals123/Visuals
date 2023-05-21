@@ -18,6 +18,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.Granularity
@@ -34,14 +35,25 @@ import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.model.PlaceTypes
+import com.google.android.libraries.places.api.model.TypeFilter
+import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
+import com.google.maps.DirectionsApi
+import com.google.maps.DirectionsApiRequest
+import com.google.maps.GeoApiContext
+import com.google.maps.model.DirectionsResult
+import com.google.maps.model.TravelMode
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentMapBinding
 import com.uc.ccs.visuals.screens.main.adapter.ViewPagerAdapter
 import com.uc.ccs.visuals.screens.main.models.MarkerInfo
+import java.io.IOException
 import java.util.Locale
 import kotlin.math.ceil
 
@@ -81,25 +93,72 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
         binding.bottomNavView.background = null
 
         // Initialize AutocompleteSupportFragment
-        autocompleteFragment = AutocompleteSupportFragment.newInstance()
-        autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
-        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
-            override fun onPlaceSelected(place: Place) {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng, CAMERA_ZOOM))
-            }
-
-            override fun onError(status: Status) {
-                Toast.makeText(requireContext(), "Error: ${status.statusMessage}", Toast.LENGTH_SHORT).show()
-            }
-        })
-
-        childFragmentManager.beginTransaction()
-            .replace(R.id.cl_actv_container, autocompleteFragment)
-            .commit()
+        setupAutoComplete()
 
         tts = TextToSpeech(requireContext(), this)
 
         return binding.root
+    }
+
+    private fun setupAutoComplete() {
+        autocompleteFragment = AutocompleteSupportFragment.newInstance()
+        autocompleteFragment.apply {
+            setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
+            setCountries(listOf("PH"))
+            setTypesFilter(listOf(PlaceTypes.ADDRESS))
+            setOnPlaceSelectedListener(object : PlaceSelectionListener {
+                override fun onPlaceSelected(place: Place) {
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng, CAMERA_ZOOM))
+                    drawPathToDestination(place.latLng)
+                }
+
+                override fun onError(status: Status) {
+                    Toast.makeText(requireContext(), "Error: ${status.statusMessage}", Toast.LENGTH_SHORT).show()
+                }
+            })
+        }
+
+        childFragmentManager.beginTransaction()
+            .replace(R.id.cl_actv_container, autocompleteFragment)
+            .commit()
+    }
+
+    private fun drawPathToDestination(destinationLatLng: LatLng) {
+        val originLatLng = viewModel.currentLatLng.value
+
+        val geoApiContext = GeoApiContext.Builder()
+            .apiKey(getString(R.string.google_map_api_key))
+            .build()
+
+        val request: DirectionsApiRequest = DirectionsApi.newRequest(geoApiContext)
+            .mode(TravelMode.DRIVING)
+            .origin("${originLatLng?.latitude},${originLatLng?.longitude}")
+            .destination("${destinationLatLng.latitude},${destinationLatLng.longitude}")
+
+        try {
+            val result: DirectionsResult = request.await()
+
+            if (result.routes.isNotEmpty()) {
+                val route = result.routes[0]
+                val polylineOptions = PolylineOptions()
+                    .addAll(route.overviewPolyline.decodePath().map {
+                        LatLng(it.lat, it.lng)
+                    })
+                    .color(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+                    .width(POLYLINE_WIDTH)
+                    .clickable(false)
+
+                mMap.addPolyline(polylineOptions)
+            } else {
+                Toast.makeText(requireContext(), "No routes found", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: ApiException) {
+            e.printStackTrace()
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -169,26 +228,28 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
 
     private fun updateMapMarkers(latLng: LatLng?) {
         with(viewModel) {
-            mMap.clear()
+            if (::mMap.isInitialized) {
+                mMap.clear()
 
-            val filterByRadius = latLng?.let {
-                filterMarkersByRadius(
-                    it,
-                    markers.value ?: emptyList(),
-                    250.0
-                )
+                val filterByRadius = latLng?.let {
+                    filterMarkersByRadius(
+                        it,
+                        markers.value ?: emptyList(),
+                        250.0
+                    )
+                }
+
+                filterByRadius?.first?.map { markerInfo ->
+                    val markerOptions = MarkerOptions()
+                        .position(markerInfo.position)
+                        .icon(markerInfo.icon)
+                    mMap.addMarker(markerOptions)
+                }
+
+                val newMarkers = filterByRadius?.second ?: emptyList()
+                setupViewPager(newMarkers)
+                setMarkers(newMarkers)
             }
-
-            filterByRadius?.first?.map { markerInfo ->
-                val markerOptions = MarkerOptions()
-                    .position(markerInfo.position)
-                    .icon(markerInfo.icon)
-                mMap.addMarker(markerOptions)
-            }
-
-            val newMarkers = filterByRadius?.second ?: emptyList()
-            setupViewPager(newMarkers)
-            setMarkers(newMarkers)
         }
     }
 
@@ -562,6 +623,7 @@ enum class NotificationMessage(val template: String) {
     }
 }
 
+const val POLYLINE_WIDTH = 10f
 const val MAP_UPDATE_INTERVAL = 10000L
 const val CAMERA_ZOOM = 20f
 const val CAMERA_ZOOM_DEFAULT = 12f

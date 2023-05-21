@@ -62,6 +62,11 @@ class SplashFragment : Fragment() {
             firestoreViewModel.retrieveData(onSuccess, onFailure)
         }
 
+    }
+
+    override fun onStart() {
+        super.onStart()
+
         val isFirstLogin = SharedPreferenceManager.isFirstLogin(requireContext())
 
         Handler(Looper.getMainLooper()).postDelayed({
@@ -72,7 +77,6 @@ class SplashFragment : Fragment() {
             }
             else { findNavController().navigate(R.id.action_splashScreenFragment_to_mapFragment)}
         }, SPLASH_TIME_OUT)
-
     }
 
 }
