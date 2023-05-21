@@ -20,7 +20,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.Granularity
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -38,12 +43,15 @@ import com.uc.ccs.visuals.databinding.FragmentMapBinding
 import com.uc.ccs.visuals.screens.main.adapter.ViewPagerAdapter
 import com.uc.ccs.visuals.screens.main.models.MarkerInfo
 import java.util.Locale
+import kotlin.math.ceil
 
 class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var autocompleteFragment: AutocompleteSupportFragment
+    private lateinit var locationCallback: LocationCallback
+    private lateinit var locationRequest: LocationRequest
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
 
     private lateinit var binding: FragmentMapBinding
@@ -94,8 +102,8 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
         return binding.root
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         //viewModel = ViewModelProvider(this).get(MapViewModel::class.java)
 
         childFragmentManager.beginTransaction()
@@ -113,7 +121,75 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
             }
         )
 
-       binding.setupViews()
+        with(binding) {
+            setupObservers()
+            setupViews()
+        }
+    }
+
+    private fun FragmentMapBinding.setupObservers() {
+        with(viewModel) {
+
+            currentLatLng.observe(viewLifecycleOwner) {latLng ->
+                updateMapMarkers(latLng)
+            }
+
+            csvDataState.observe(viewLifecycleOwner) {state ->
+                when (state) {
+                    CsvDataState.onLoad -> {}
+                    is CsvDataState.onSuccess -> {
+                        setCsvDataFromFirestore(state.list)
+                    }
+                    is CsvDataState.onFailure -> {
+                        Toast.makeText(requireContext(), state.e.localizedMessage, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
+            csvDataFromFirestore.observe(viewLifecycleOwner) { csvData ->
+                val convertToMarkerInfoList = csvData.map { item ->
+                    val latLng = item.position.split("-")
+                    MarkerInfo(
+                        id = item.id,
+                        title = item.title,
+                        position = LatLng(latLng[0].toDouble(), latLng[1].toDouble()),
+                        distance = item.distance.toDouble(),
+                        iconImageUrl = item.iconImageUrl,
+                        description = item.description,
+                        isWithinRadius = false,
+                    )
+                }
+                setMarkers(convertToMarkerInfoList)
+            }
+
+            markers.observe(viewLifecycleOwner) { markers ->
+            }
+        }
+    }
+
+    private fun updateMapMarkers(latLng: LatLng?) {
+        with(viewModel) {
+            mMap.clear()
+
+            val filterByRadius = latLng?.let {
+                filterMarkersByRadius(
+                    it,
+                    markers.value ?: emptyList(),
+                    250.0
+                )
+            }
+
+            filterByRadius?.first?.map { markerInfo ->
+                val markerOptions = MarkerOptions()
+                    .position(markerInfo.position)
+                    .icon(markerInfo.icon)
+                mMap.addMarker(markerOptions)
+            }
+
+            val newMarkers = filterByRadius?.second ?: emptyList()
+            setupViewPager(newMarkers)
+            setMarkers(newMarkers)
+        }
     }
 
     private fun FragmentMapBinding.setupViews() {
@@ -152,7 +228,26 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
                 location?.let {
                     val currentLatLng = LatLng(location.latitude, location.longitude)
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, CAMERA_ZOOM_DEFAULT))
-                    addMarksToMap(currentLatLng)
+                    updateMapMarkers(currentLatLng)
+                }
+            }
+
+            // Inside your initialization/setup code
+            locationRequest = LocationRequest.Builder(
+                Priority.PRIORITY_HIGH_ACCURACY,
+                MAP_UPDATE_INTERVAL,
+            ).apply {
+                setMinUpdateDistanceMeters(5f)
+                setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+                setWaitForAccurateLocation(true)
+            }.build()
+
+            locationCallback = object : LocationCallback() {
+                override fun onLocationResult(p0: LocationResult) {
+                    p0.lastLocation?.let { location ->
+                        val currentLatLng = LatLng(location.latitude, location.longitude)
+                        viewModel.setCurrentLatLng(currentLatLng)
+                    }
                 }
             }
 
@@ -171,6 +266,8 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
 
                 true
             }
+
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
         } else {
             ActivityCompat.requestPermissions(
                 requireActivity(),
@@ -190,88 +287,65 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
             location?.let {
                 val currentLatLng = LatLng(location.latitude, location.longitude)
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, CAMERA_ZOOM))
-                addMarksToMap(currentLatLng)
+                updateMapMarkers(currentLatLng)
             }
         }
     }
 
-    private fun setupViewPager() {
+    private fun setupViewPager(markers: List<MarkerInfo>) {
         with(binding) {
-            viewModel.markers.observe(viewLifecycleOwner) { markers ->
-                val withinRadius = markers?.filter { it.isWithinRadius }?.sortedBy { it.isWithinRadius } ?: return@observe
-                val adapter = ViewPagerAdapter(requireContext(),withinRadius ) {
-                    clViewpagerContainer.isVisible = false
-                }
-
-                viewPager.adapter = adapter
-
-                val hasMultipleMarker = withinRadius.size > 1
-                if (hasMultipleMarker) {
-                    speakOut(NotificationMessage.getRandomMessageForMultipleSigns("5"))
-                } else {
-                    speakOut(NotificationMessage.getRandomMessageForSingleSign("10","Stop"))
-                }
-                clViewpagerContainer.isVisible = hasMultipleMarker
-                circleIndicator.isVisible = hasMultipleMarker
-                circleIndicator.setViewPager(viewPager)
+            val withinRadius = markers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius } ?: return
+            val adapter = ViewPagerAdapter(requireContext(),withinRadius ) {
+                clViewpagerContainer.isVisible = false
             }
+
+            viewPager.adapter = adapter
+
+            val hasMultipleMarker = withinRadius.size > 1
+            if (hasMultipleMarker) {
+                speakOut(NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance)))
+            } else {
+                if(withinRadius.isNotEmpty()) {
+                    val item = withinRadius[0]
+                    speakOut(
+                        NotificationMessage.getRandomMessageForSingleSign(
+                            toDistanceString(item.distance),
+                            item.description.toString()
+                        )
+                    )
+                }
+            }
+
+            clViewpagerContainer.isVisible = hasMultipleMarker
+            circleIndicator.isVisible = hasMultipleMarker
+            circleIndicator.setViewPager(viewPager)
         }
     }
 
-    private fun addMarksToMap(currentLatLng: LatLng) {
-        mMap.clear()
-        val nearbyDistance5Meters = 5.0 // in meters
-        val nearbyDistance10Meters = 10.0 // in meters
-
-        val markerOptionsList = mutableListOf<MarkerOptions>()
-
-        val markerInfos5Meters = generateMarkerInfosInDistance(currentLatLng, nearbyDistance5Meters, count = 3)
-        val markerInfos10Meters = generateMarkerInfosInDistance(currentLatLng, nearbyDistance10Meters, count = 3)
-
-        val markerInfos = mutableListOf<MarkerInfo>()
-        markerInfos.addAll(markerInfos5Meters)
-        markerInfos.addAll(markerInfos10Meters)
-
-        markerInfos.map {
-            val markerOptions = MarkerOptions()
-                .position(it.position)
-                .icon(it.iconBitmapDescriptor)
-
-            markerOptionsList.add(markerOptions)
-        }
-
-        val (filteredMarkers,updatedMarkersInfo) = filterMarkersByRadius(currentLatLng, markerOptionsList, nearbyDistance5Meters)
-
-        filteredMarkers.forEach { markerInfo ->
-            val markerOptions = MarkerOptions()
-                .position(markerInfo.position)
-                .icon(markerInfo.icon)
-            mMap.addMarker(markerOptions)
-        }
-
-        viewModel.setMarkers(updatedMarkersInfo)
-        setupViewPager()
-    }
-
+    private fun toDistanceString(distance: Double?) : String = ceil(distance ?: 0.0).toInt().toString()
     private fun filterMarkersByRadius(
         currentLatLng: LatLng,
-        markers: List<MarkerOptions>,
+        markers: List<MarkerInfo>,
         radius: Double
-    ): Pair<List<MarkerOptions>,List<MarkerInfo>> {
+    ): Pair<List<MarkerOptions>, List<MarkerInfo>> {
         val filteredMarkers = mutableListOf<MarkerOptions>()
         val markerInfos: List<MarkerInfo> = markers.map { marker ->
             val position = marker.position
             val distance = calculateDistance(currentLatLng, position)
             val isWithinRadius = distance <= radius
             MarkerInfo(
-                title = "Sample Title",
+                id = marker.id,
+                title = marker.title,
                 position = position,
                 distance = distance,
-                iconBitmapDescriptor = marker.icon,
+                iconBitmapDescriptor = marker.iconBitmapDescriptor,
                 isWithinRadius = isWithinRadius
             )
         }
 
+        /**
+         * Changed logic [reserved code]
+         *
         val markersWithinRadius = markerInfos.filter { it.isWithinRadius }
 
         if (markersWithinRadius.size == 1) {
@@ -285,7 +359,8 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
             filteredMarkers.add(
                 createMarkerOption(
                     MarkerInfo(
-                        title = "Sample Title",
+                        id = "0",
+                        title = "Multiple Signs",
                         position = averageLocation,
                         distance = 0.0,
                         iconBitmapDescriptor = null,
@@ -305,8 +380,18 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
                 )
             }
         }
+        */
 
-        return Pair(filteredMarkers,markerInfos)
+        markerInfos.forEach { markerInfo ->
+            if (markerInfo.isWithinRadius) {
+                filteredMarkers.add(
+                    createMarkerOption(markerInfo)
+                        .title("not within")
+                )
+            }
+        }
+
+        return Pair(filteredMarkers, markerInfos)
     }
 
 
@@ -354,6 +439,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
         for (i in 0 until count) {
             val offsetLatLng = calculateOffset(currentLatLng, distance, i * 360.0 / count)
             val markerInfo = MarkerInfo(
+                id = "0",
                 title = "", // Set the title as needed
                 position = offsetLatLng,
                 distance = distance,
@@ -476,7 +562,7 @@ enum class NotificationMessage(val template: String) {
     }
 }
 
-
+const val MAP_UPDATE_INTERVAL = 10000L
 const val CAMERA_ZOOM = 20f
 const val CAMERA_ZOOM_DEFAULT = 12f
 const val ON_BACK_PRESSED_LIMIT_TO_FINISH = 1
