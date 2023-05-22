@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="field_height">60dp</dimen>
+    <dimen name="direction_size">30dp</dimen>
     <dimen name="height_viewpager_pic">70dp</dimen>
     <dimen name="card_elevation">15dp</dimen>
     <dimen name="card_elevation_small">2dp</dimen>

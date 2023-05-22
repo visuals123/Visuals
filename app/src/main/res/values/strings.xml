@@ -47,6 +47,7 @@
     <string name="csv_import_summary">Import CSV file</string>
     <string name="logout">Logout</string>
     <string name="successfully_uploaded">Successfully Uploaded</string>
+    <string name="emptyString" />
 
     <string-array name="language_entries">
         <item>English</item>

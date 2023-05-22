@@ -47,6 +47,20 @@
             tools:context=".MapsActivity" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_directions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_standard"
+            android:layout_marginBottom="@dimen/margin_standard"
+            android:backgroundTint="@color/colorPrimary"
+            android:src="@drawable/ic_direction"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/fab_my_location"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:maxImageSize="@dimen/direction_size"
+            app:tint="@color/white" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_my_location"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

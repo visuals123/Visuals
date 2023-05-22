@@ -1,7 +1,13 @@
 package com.uc.ccs.visuals.screens.main
 
 import android.Manifest
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.LayerDrawable
 import android.location.Location
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
@@ -12,6 +18,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -37,11 +45,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.libraries.places.api.Places
-import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
-import com.google.android.libraries.places.api.model.PlaceTypes
-import com.google.android.libraries.places.api.model.TypeFilter
-import com.google.android.libraries.places.widget.Autocomplete
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.google.maps.DirectionsApi
@@ -65,6 +69,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
     private lateinit var locationCallback: LocationCallback
     private lateinit var locationRequest: LocationRequest
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
+    private var isDirectionsMode = true
 
     private lateinit var binding: FragmentMapBinding
 
@@ -105,15 +110,22 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
         autocompleteFragment.apply {
             setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
             setCountries(listOf("PH"))
-            setTypesFilter(listOf(PlaceTypes.ADDRESS))
             setOnPlaceSelectedListener(object : PlaceSelectionListener {
                 override fun onPlaceSelected(place: Place) {
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.latLng, CAMERA_ZOOM))
-                    drawPathToDestination(place.latLng)
+                    clearMap()
+
+                    if (place.name.toString().trim().isNotBlank()) {
+                        animateCamera(place.latLng, CAMERA_ZOOM)
+                        addMarker(place.name, place.latLng)
+                        setupDirectionButton(true, place.latLng)
+                    } else {
+                        setupDirectionButton(false, null)
+                    }
                 }
 
                 override fun onError(status: Status) {
                     Toast.makeText(requireContext(), "Error: ${status.statusMessage}", Toast.LENGTH_SHORT).show()
+                    autocompleteFragment.setText("")
                 }
             })
         }
@@ -121,6 +133,73 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
         childFragmentManager.beginTransaction()
             .replace(R.id.cl_actv_container, autocompleteFragment)
             .commit()
+    }
+
+    private fun clearMap() {
+        if (::mMap.isInitialized) {
+            mMap.clear()
+        }
+    }
+
+    private fun setupDirectionButton(bool: Boolean, latLng: LatLng?) {
+        with(binding) {
+            binding.fabDirections.apply {
+                isVisible = bool
+                setOnClickListener {
+                    if (isDirectionsMode) {
+                        animateFabIconChange(R.drawable.ic_close, true)
+                        if (latLng != null) {
+                            drawPathToDestination(latLng)
+                            animateCamera(latLng, CAMERA_ZOOM_DIRECTION)
+                        }
+                        isDirectionsMode = false
+                    } else {
+                        animateFabIconChange(R.drawable.ic_direction, false)
+                        clearMap()
+                        autocompleteFragment.setText(getString(R.string.emptyString))
+                        isVisible = false
+                        isDirectionsMode = true
+                    }
+                }
+            }
+        }
+    }
+
+    private fun animateFabIconChange(@DrawableRes newIconResId: Int, isDirectionsMode: Boolean) {
+        with(binding) {
+            val fadeOut = ObjectAnimator.ofFloat(fabDirections, "alpha", 1f, 0f)
+            fadeOut.duration = 200
+            fadeOut.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    fabDirections.setImageResource(newIconResId)
+                    val tintColor = if (isDirectionsMode) R.color.md_red_300 else R.color.colorPrimary
+                    val backgroundColor = if (isDirectionsMode) R.color.md_red_300 else R.color.colorPrimary
+                    fabDirections.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.white))
+                    fabDirections.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), backgroundColor))
+
+                    val fadeIn = ObjectAnimator.ofFloat(fabDirections, "alpha", 0f, 1f)
+                    fadeIn.duration = 200
+                    fadeIn.start()
+                }
+            })
+            fadeOut.start()
+        }
+    }
+
+    private fun animateCamera(latLng: LatLng,zoom: Float) {
+        if (::mMap.isInitialized) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom))
+        }
+    }
+
+    private fun addMarker(name: String?, latLng: LatLng?) {
+        if (name != null && latLng != null && ::mMap.isInitialized) {
+            val markerOptions = MarkerOptions()
+                .position(latLng)
+                .title(name)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+            mMap.addMarker(markerOptions)
+        }
     }
 
     private fun drawPathToDestination(destinationLatLng: LatLng) {
@@ -163,7 +242,6 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        //viewModel = ViewModelProvider(this).get(MapViewModel::class.java)
 
         childFragmentManager.beginTransaction()
             .replace(R.id.cl_actv_container, autocompleteFragment)
@@ -229,13 +307,12 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
     private fun updateMapMarkers(latLng: LatLng?) {
         with(viewModel) {
             if (::mMap.isInitialized) {
-                mMap.clear()
 
                 val filterByRadius = latLng?.let {
                     filterMarkersByRadius(
                         it,
                         markers.value ?: emptyList(),
-                        250.0
+                        DISTANCE_RADIUS
                     )
                 }
 
@@ -288,7 +365,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
             fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                 location?.let {
                     val currentLatLng = LatLng(location.latitude, location.longitude)
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, CAMERA_ZOOM_DEFAULT))
+                    animateCamera(currentLatLng, CAMERA_ZOOM_DEFAULT)
                     updateMapMarkers(currentLatLng)
                 }
             }
@@ -347,7 +424,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
         fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
             location?.let {
                 val currentLatLng = LatLng(location.latitude, location.longitude)
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, CAMERA_ZOOM))
+                animateCamera(currentLatLng, CAMERA_ZOOM)
                 updateMapMarkers(currentLatLng)
             }
         }
@@ -623,8 +700,10 @@ enum class NotificationMessage(val template: String) {
     }
 }
 
+const val DISTANCE_RADIUS = 250.0
 const val POLYLINE_WIDTH = 10f
 const val MAP_UPDATE_INTERVAL = 10000L
 const val CAMERA_ZOOM = 20f
 const val CAMERA_ZOOM_DEFAULT = 12f
+const val CAMERA_ZOOM_DIRECTION = 16f
 const val ON_BACK_PRESSED_LIMIT_TO_FINISH = 1
