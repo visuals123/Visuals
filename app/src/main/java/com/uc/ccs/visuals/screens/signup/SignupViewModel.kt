@@ -12,11 +12,11 @@ class SignupViewModel : ViewModel() {
     val signupState: LiveData<SignupState> = _signupState
 
     fun signupUser(user: User, password: String) {
-        FirebaseAuthManager.createUserWithEmailAndPassword(user.email, password) { isSuccess ->
+        FirebaseAuthManager.createUserWithEmailAndPassword(user.email, password) { isSuccess, err ->
             if (isSuccess) {
                 saveUserData(user)
             } else {
-                _signupState.value = SignupState.Failure
+                _signupState.value = SignupState.Failure(err ?: Exception())
             }
         }
     }
@@ -24,8 +24,11 @@ class SignupViewModel : ViewModel() {
     private fun saveUserData(user: User) {
         val firebaseFirestore = FirebaseFirestore.getInstance()
 
+        val email = user.email
+
         firebaseFirestore.collection(COLLECTION_PATH)
-            .add(user)
+            .document(email)
+            .set(user)
             .addOnSuccessListener { documentReference ->
                 _signupState.value = SignupState.Success
             }
@@ -36,7 +39,7 @@ class SignupViewModel : ViewModel() {
 
     sealed class SignupState {
         object Success : SignupState()
-        object Failure : SignupState()
+        data class Failure(val error: Exception) : SignupState()
         object ErrorSavingData : SignupState()
     }
 

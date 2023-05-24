@@ -18,12 +18,12 @@ class LoginViewModel : ViewModel() {
         }
 
         if (currentUser != null) {
-            _authenticationState.value = AuthenticationState.Authenticated
+            _authenticationState.value = AuthenticationState.Authenticated(email)
         } else {
             // Perform login with Firebase Authentication
             FirebaseAuthManager.signInWithEmailAndPassword(email, password) { success ->
                 if (success) {
-                    _authenticationState.postValue(AuthenticationState.Authenticated)
+                    _authenticationState.postValue(AuthenticationState.Authenticated(email))
                 } else {
                     _authenticationState.postValue(AuthenticationState.InvalidAuthentication)
                 }
@@ -31,7 +31,7 @@ class LoginViewModel : ViewModel() {
         }
     }
     sealed class AuthenticationState {
-        object Authenticated : AuthenticationState()
+        data class Authenticated(val email: String) : AuthenticationState()
         object InvalidAuthentication : AuthenticationState()
     }
 

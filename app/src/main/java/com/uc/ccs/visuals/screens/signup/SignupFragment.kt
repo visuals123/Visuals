@@ -98,13 +98,14 @@ class SignupFragment : Fragment() {
                 }
                 is SignupViewModel.SignupState.Failure -> {
                     loadingIndicator.visibility = View.GONE
-                    Toast.makeText(requireContext(), getString(R.string.login_error_message), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), state.error.localizedMessage, Toast.LENGTH_SHORT).show()
                 }
                 is SignupViewModel.SignupState.ErrorSavingData -> {
                     loadingIndicator.visibility = View.GONE
                     Toast.makeText(requireContext(), "Failed to save user data", Toast.LENGTH_SHORT).show()
                 }
             }
+            enableFields(true)
         }
     }
 
