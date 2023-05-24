@@ -4,10 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.model.LatLng
+import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
 import com.uc.ccs.visuals.screens.main.models.MarkerInfo
 import com.uc.ccs.visuals.screens.settings.CsvData
-import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
-import java.lang.Exception
 
 class MapViewModel: ViewModel() {
 
@@ -20,11 +19,18 @@ class MapViewModel: ViewModel() {
     private val _csvDataState = MutableLiveData<CsvDataState>()
     val csvDataState: LiveData<CsvDataState> get() = _csvDataState
 
+    private val _currentUser = MutableLiveData<UserItem>()
+    val currentUser get() = _currentUser
+
     private val _currentLatLng = MutableLiveData<LatLng>()
     val currentLatLng: LiveData<LatLng> get() = _currentLatLng
 
     fun setMarkers(markerOptionsList: List<MarkerInfo>) {
-        _markers?.value = markerOptionsList
+        _markers.value = markerOptionsList
+    }
+
+    fun setCurrentUser(user: UserItem) {
+        _currentUser.value = user
     }
 
     fun setCsvDataFromFirestore(csvData: List<CsvData>) {
@@ -38,6 +44,8 @@ class MapViewModel: ViewModel() {
     fun setCurrentLatLng(latLng: LatLng) {
         _currentLatLng.value = latLng
     }
+
+    fun getCurrentUser(): UserItem? = currentUser.value
 
     fun retrieveMarkersFromFirestore() {
 

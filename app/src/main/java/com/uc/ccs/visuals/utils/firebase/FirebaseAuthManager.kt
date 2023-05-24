@@ -18,15 +18,15 @@ object FirebaseAuthManager {
             }
     }
 
-    fun createUserWithEmailAndPassword(email: String, password: String, callback: (Boolean) -> Unit) {
+    fun createUserWithEmailAndPassword(email: String, password: String, callback: (Boolean,Exception?) -> Unit) {
         firebaseAuth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     // User creation successful
-                    callback(true)
+                    callback(true, null)
                 } else {
                     // User creation failed
-                    callback(false)
+                    callback(false, task.exception)
                 }
             }
     }

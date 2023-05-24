@@ -1,7 +1,7 @@
 package com.uc.ccs.visuals.utils.firebase
 
-import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
 import com.uc.ccs.visuals.screens.settings.CsvData
 
 class FirestoreRepository {
@@ -79,5 +79,71 @@ class FirestoreRepository {
             }
     }
 
+    fun getUsers(collectionPath: String, onSuccess: (List<UserItem>) -> Unit, onFailure: (e: Exception) -> Unit) {
+        firestore.collection(collectionPath)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val userList = mutableListOf<UserItem>()
+
+                for (document in querySnapshot) {
+                    val userDataMap = document.data
+                    val id = document.id as? String
+                    val firstname = userDataMap["firstName"] as? String
+                    val lastname = userDataMap["lastName"] as? String
+                    val email = userDataMap["email"] as? String
+
+                    if (id != null && firstname != null && lastname != null && email != null) {
+                        val user = UserItem(
+                            id = id,
+                            firstName = firstname,
+                            lastName = lastname,
+                            email = email
+                        )
+                        userList.add(user)
+                    }
+                }
+
+                onSuccess(userList)
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
+
+    fun getUserByEmail(collectionPath: String, email: String, onSuccess: (UserItem?) -> Unit, onFailure: (e: Exception) -> Unit) {
+        firestore.collection(collectionPath)
+            .whereEqualTo("email", email)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                if (!querySnapshot.isEmpty) {
+                    val documentSnapshot = querySnapshot.documents[0]
+                    val userDataMap = documentSnapshot.data
+                    val id = documentSnapshot.id as? String
+                    val firstname = userDataMap?.get("firstName") as? String
+                    val lastname = userDataMap?.get("lastName") as? String
+                    val userEmail = userDataMap?.get("email") as? String
+                    val roles = userDataMap?.get("roles") as? Long
+
+                    if (id != null && firstname != null && lastname != null && userEmail != null
+                        && roles != null) {
+                        val user = UserItem(
+                            id = id,
+                            firstName = firstname,
+                            lastName = lastname,
+                            email = userEmail,
+                            roles = roles.toInt()
+                        )
+                        onSuccess(user)
+                    } else {
+                        onSuccess(null) // User data is incomplete
+                    }
+                } else {
+                    onSuccess(null) // User not found
+                }
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
 
 }
