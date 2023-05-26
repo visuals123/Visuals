@@ -24,7 +24,7 @@ class ViewPagerAdapter(private val context: Context, private val items: List<Mar
 
         with(binding) {
             iconImageView.setImageResource(R.drawable.ic_road_sign_1)
-            tvDistance.text = formatDistance(item.distance)
+            tvDistance.text = formatDistance(item.distance ?: 0.0)
             tvTitle.text = item.title
             tvDescription.text = item.description
 

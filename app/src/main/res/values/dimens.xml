@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="field_height">60dp</dimen>
+    <dimen name="direction_size">30dp</dimen>
     <dimen name="height_viewpager_pic">70dp</dimen>
     <dimen name="card_elevation">15dp</dimen>
     <dimen name="card_elevation_small">2dp</dimen>
@@ -86,4 +87,5 @@
     <dimen name="list_item_spacing">16dp</dimen>
     <dimen name="list_item_spacing_half">8dp</dimen>
     <dimen name="intro_button_width">175dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
 </resources>

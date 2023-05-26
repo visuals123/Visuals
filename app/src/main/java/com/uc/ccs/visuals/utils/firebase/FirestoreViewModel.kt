@@ -3,6 +3,7 @@ package com.uc.ccs.visuals.utils.firebase
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
 import com.uc.ccs.visuals.screens.settings.CsvData
 
 class FirestoreViewModel : ViewModel() {
@@ -13,18 +14,29 @@ class FirestoreViewModel : ViewModel() {
 
     fun saveCsvData(data: List<CsvData>) {
         _operationState.value = OperationState.Loading
-        repository.saveMultipleData(COLLECTION_PATH, data, {
+        repository.saveMultipleData(ROAD_SIGN_COLLECTION_PATH, data, {
             _operationState.value = OperationState.Success
         }, {
             _operationState.value = OperationState.Error(it)
         })
     }
 
-    companion object {
-        const val COLLECTION_PATH = "roadsigns"
+    fun retrieveData(onSuccess: (List<CsvData>) -> Unit, onFailure: (e: Exception) -> Unit) {
+        repository.getCsvData(ROAD_SIGN_COLLECTION_PATH,onSuccess,onFailure)
     }
 
-    // You can add more functions for other Firestore operations like update, delete, etc.
+    fun getUsers(onSuccess: (List<UserItem>) -> Unit, onFailure: (e: Exception) -> Unit) {
+        repository.getUsers(USERS_COLLECTION_PATH, onSuccess, onFailure)
+    }
+
+    fun getUser(email: String,onSuccess: (UserItem?) -> Unit, onFailure: (e: Exception) -> Unit) {
+        repository.getUserByEmail(USERS_COLLECTION_PATH, email, onSuccess, onFailure)
+    }
+
+    companion object {
+        const val ROAD_SIGN_COLLECTION_PATH = "roadsigns"
+        const val USERS_COLLECTION_PATH = "users"
+    }
 
     sealed class OperationState {
         object Loading : OperationState()

@@ -1,17 +1,21 @@
 package com.uc.ccs.visuals.screens.login
 
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentLoginBinding
+import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
+import com.uc.ccs.visuals.screens.main.MapViewModel
 import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
+import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
+import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
 
 class LoginFragment : Fragment() {
 
@@ -21,6 +25,24 @@ class LoginFragment : Fragment() {
     private lateinit var firebaseAuth: FirebaseAuth
 
     private lateinit var viewModel: LoginViewModel
+    private lateinit var firestoreViewModel: FirestoreViewModel
+    private lateinit var mapViewModel: MapViewModel
+
+    private val onSuccess: (UserItem?) -> Unit = {user ->
+        user?.let {
+            mapViewModel.setCurrentUser(user)
+
+            if(SharedPreferenceManager.getCurrentUser(requireContext()) == null) {
+                SharedPreferenceManager.setCurrentUser(requireContext(), user)
+            }
+
+            findNavController().navigate(R.id.action_loginFragment_to_splashScreenFragment)
+        }
+    }
+
+    private val onFailure: (e: Exception) -> Unit = {
+        Toast.makeText(requireContext(), it.localizedMessage, Toast.LENGTH_SHORT).show()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,6 +51,9 @@ class LoginFragment : Fragment() {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
 
         firebaseAuth = FirebaseAuth.getInstance()
+
+        firestoreViewModel = ViewModelProvider(requireActivity()).get(FirestoreViewModel::class.java)
+        mapViewModel = ViewModelProvider(requireActivity()).get(MapViewModel::class.java)
 
         return binding.root
     }
@@ -59,7 +84,7 @@ class LoginFragment : Fragment() {
         viewModel.authenticationState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is LoginViewModel.AuthenticationState.Authenticated -> {
-                    findNavController().navigate(R.id.action_loginFragment_to_splashScreenFragment)
+                    firestoreViewModel.getUser(state.email, onSuccess, onFailure)
                 }
 
                 is LoginViewModel.AuthenticationState.InvalidAuthentication -> {
@@ -82,6 +107,11 @@ class LoginFragment : Fragment() {
         }
     }
 
+}
+
+enum class UserRoles(val value: Int) {
+    ADMIN(1),
+    USER(2)
 }
 
 const val TAG = "LoginFragment"

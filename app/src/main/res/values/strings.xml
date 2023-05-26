@@ -21,7 +21,7 @@
     <string name="let_s_go">Let\'s Go</string>
 
     <string name="signin_with_google">Signin with Google</string>
-    <string name="google_map_api_key">AIzaSyC08WpSeveityqvO2FGAyAmqpkKu01_4WA</string>
+    <string name="google_map_api_key">AIzaSyCq2XRH1mJSY218jMnotCUv7atHwfpWo8k</string>
     <string name="server_client_id">1099201395210-6t9740dtdipp2ff74f79ih9ekmv758hf.apps.googleusercontent.com</string>
     <string name="lastname">Lastname</string>
     <string name="firstname">Firstname</string>
@@ -47,6 +47,7 @@
     <string name="csv_import_summary">Import CSV file</string>
     <string name="logout">Logout</string>
     <string name="successfully_uploaded">Successfully Uploaded</string>
+    <string name="emptyString" />
 
     <string-array name="language_entries">
         <item>English</item>

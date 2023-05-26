@@ -4,10 +4,8 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.VolumeShaper.Operation
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,14 +16,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSettingsDialogBinding
-import com.uc.ccs.visuals.screens.signup.SignupViewModel
 import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
 import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
+import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -99,6 +96,7 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
             // Listen for preference clicks
             findPreference<Preference>("logout_preference")?.setOnPreferenceClickListener {
                 // Handle logout click
+                SharedPreferenceManager.clearCurrentUser(requireContext())
                 FirebaseAuthManager.signOut()
                 findNavController().navigate(R.id.action_settingsDialogFragment_to_loginFragment)
                 true
