@@ -5,6 +5,7 @@ import com.google.android.gms.maps.model.LatLng
 
 data class MarkerInfo(
     val id: String,
+    val code: String,
     val title: String,
     val position: LatLng,
     val distance: Double? = null,

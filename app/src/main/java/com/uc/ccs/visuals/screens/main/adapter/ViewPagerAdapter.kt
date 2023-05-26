@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.viewpager.widget.PagerAdapter
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.ViewPagerItemBinding
 import com.uc.ccs.visuals.screens.main.models.MarkerInfo
@@ -23,7 +25,9 @@ class ViewPagerAdapter(private val context: Context, private val items: List<Mar
         val item = items[position]
 
         with(binding) {
-            iconImageView.setImageResource(R.drawable.ic_road_sign_1)
+            Glide.with(context)
+                .load(item.iconImageUrl)
+                .into(iconImageView)
             tvDistance.text = formatDistance(item.distance ?: 0.0)
             tvTitle.text = item.title
             tvDescription.text = item.description

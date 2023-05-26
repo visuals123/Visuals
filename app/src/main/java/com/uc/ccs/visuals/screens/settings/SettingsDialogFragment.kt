@@ -167,19 +167,19 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
                             val csvFields = line?.split(",") ?: continue
                             if (csvFields.size >= 6) { // Check if the row has at least 6 fields
                                 val id = csvFields[0].trim()
-                                val title = csvFields[1].trim()
-                                val description = csvFields[2].trim()
-                                val lat = csvFields[3].trim().removePrefix("\"")
-                                val long = csvFields[4].trim().removeSuffix("\"")
-                                val distance = csvFields[5].trim()
+                                val code = csvFields[1].trim()
+                                val title = csvFields[2].trim()
+                                val description = csvFields[3].trim()
+                                val lat = csvFields[4].trim().removePrefix("\"")
+                                val long = csvFields[5].trim().removeSuffix("\"")
                                 val iconImageUrl = csvFields[6].trim()
 
                                 val csvData = CsvData(
                                     id = id,
+                                    code = code,
                                     title = title,
                                     description = description,
                                     position = "$lat-$long",
-                                    distance = distance,
                                     iconImageUrl = iconImageUrl
                                 )
                                 csvDataList.add(csvData)
@@ -203,9 +203,9 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
 
 data class CsvData(
     val id: String,
+    val code: String,
     val title: String,
     val description: String,
     val position: String,
-    val distance: String,
     val iconImageUrl: String? = null
 )

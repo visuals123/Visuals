@@ -13,6 +13,7 @@ class FirestoreRepository {
         data.map { csvData ->
             val csvDataMap = hashMapOf<String, Any>()
             csvDataMap["id"] = csvData.id
+            csvDataMap["code"] = csvData.code
             csvDataMap["title"] = csvData.title
             csvDataMap["description"] = csvData.description
             csvData.position.let { position ->
@@ -29,7 +30,6 @@ class FirestoreRepository {
                     }
                 }
             }
-            csvDataMap["distance"] = csvData.distance
             csvDataMap["iconImageUrl"] = csvData.iconImageUrl ?: ""
 
             val documentReference = firestore.collection(collectionPath)
@@ -54,19 +54,26 @@ class FirestoreRepository {
                 for (document in querySnapshot) {
                     val csvDataMap = document.data
                     val id = csvDataMap["id"] as? String
+                    val code = csvDataMap["code"] as? String
                     val title = csvDataMap["title"] as? String
                     val description = csvDataMap["description"] as? String
                     val positionMap = csvDataMap["position"] as? Map<String, Any>
-                    val distance = csvDataMap["distance"]
                     val iconImageUrl = csvDataMap["iconImageUrl"] as? String
 
-                    if (id != null && title != null && description != null && positionMap != null && distance != null) {
+                    if (id != null && title != null && description != null && positionMap != null && code != null) {
                         val latitude = positionMap["latitude"] as? Double
                         val longitude = positionMap["longitude"] as? Double
 
                         if (latitude != null && longitude != null) {
                             val position = "$latitude-$longitude"
-                            val csvData = CsvData(id, title, description, position, distance.toString(), iconImageUrl)
+                            val csvData = CsvData(
+                                id = id,
+                                code = code,
+                                title = title,
+                                description = description,
+                                position = position,
+                                iconImageUrl = iconImageUrl
+                            )
                             csvDataList.add(csvData)
                         }
                     }

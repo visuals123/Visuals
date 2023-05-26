@@ -5,11 +5,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSignListDialogListDialogBinding
@@ -127,6 +130,7 @@ class SignListDialogFragment : BottomSheetDialogFragment() {
         }
 
         inner class MarkerInfoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            private val ivImage: ImageView = itemView.findViewById(R.id.iv_image)
             private val titleTextView: TextView = itemView.findViewById(R.id.titleTextView)
             private val distanceTextView: TextView = itemView.findViewById(R.id.distanceTextView)
 
@@ -134,7 +138,10 @@ class SignListDialogFragment : BottomSheetDialogFragment() {
                 titleTextView.text = markerInfo.title
                 distanceTextView.text = markerInfo.distance.toString()
 
-                // Access other properties of the markerInfo object as needed
+                Glide.with(itemView)
+                    .load(markerInfo.iconImageUrl) // Replace with your image URL or resource
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(ivImage)
             }
         }
     }

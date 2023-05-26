@@ -288,9 +288,9 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
                     val latLng = item.position.split("-")
                     MarkerInfo(
                         id = item.id,
+                        code = item.code,
                         title = item.title,
                         position = LatLng(latLng[0].toDouble(), latLng[1].toDouble()),
-                        distance = item.distance.toDouble(),
                         iconImageUrl = item.iconImageUrl,
                         description = item.description,
                         isWithinRadius = false,
@@ -432,7 +432,7 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
 
     private fun setupViewPager(markers: List<MarkerInfo>) {
         with(binding) {
-            val withinRadius = markers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius } ?: return
+            val withinRadius = markers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
             val adapter = ViewPagerAdapter(requireContext(),withinRadius ) {
                 clViewpagerContainer.isVisible = false
             }
@@ -445,22 +445,24 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
             } else {
                 if(withinRadius.isNotEmpty()) {
                     val item = withinRadius[0]
-                    speakOut(
-                        NotificationMessage.getRandomMessageForSingleSign(
-                            toDistanceString(item.distance),
-                            item.description.toString()
-                        )
-                    )
+                    speakOut("In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}")
                 }
             }
 
-            clViewpagerContainer.isVisible = hasMultipleMarker
+            clViewpagerContainer.isVisible = true
             circleIndicator.isVisible = hasMultipleMarker
             circleIndicator.setViewPager(viewPager)
         }
     }
 
-    private fun toDistanceString(distance: Double?) : String = ceil(distance ?: 0.0).toInt().toString()
+    private fun toDistanceString(distance: Double?) : String {
+        val value = ceil(distance ?: 0.0).toInt().toString()
+        return if (ceil(distance ?: 0.0).toInt() > 1) {
+            value.plus("meters")
+        } else {
+            value.plus("meter")
+        }
+    }
     private fun filterMarkersByRadius(
         currentLatLng: LatLng,
         markers: List<MarkerInfo>,
@@ -474,51 +476,14 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
             MarkerInfo(
                 id = marker.id,
                 title = marker.title,
+                code = marker.code,
                 position = position,
+                description = marker.description,
                 distance = distance,
                 iconBitmapDescriptor = marker.iconBitmapDescriptor,
                 isWithinRadius = isWithinRadius
             )
         }
-
-        /**
-         * Changed logic [reserved code]
-         *
-        val markersWithinRadius = markerInfos.filter { it.isWithinRadius }
-
-        if (markersWithinRadius.size == 1) {
-            filteredMarkers.add(
-                createMarkerOption(markersWithinRadius.first())
-                    .title("within")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-            )
-        } else if (markersWithinRadius.size > 1) {
-            val averageLocation = calculateAverageLocation(markersWithinRadius.map { it.position })
-            filteredMarkers.add(
-                createMarkerOption(
-                    MarkerInfo(
-                        id = "0",
-                        title = "Multiple Signs",
-                        position = averageLocation,
-                        distance = 0.0,
-                        iconBitmapDescriptor = null,
-                        isWithinRadius = true
-                    )
-                )
-                    .title("within")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-            )
-        }
-
-        markerInfos.forEach { markerInfo ->
-            if (!markerInfo.isWithinRadius) {
-                filteredMarkers.add(
-                    createMarkerOption(markerInfo)
-                        .title("not within")
-                )
-            }
-        }
-        */
 
         markerInfos.forEach { markerInfo ->
             if (markerInfo.isWithinRadius) {
@@ -530,15 +495,6 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
         }
 
         return Pair(filteredMarkers, markerInfos)
-    }
-
-
-    private fun calculateAverageLocation(positions: List<LatLng>): LatLng {
-        val totalLat = positions.sumByDouble { it.latitude }
-        val totalLng = positions.sumByDouble { it.longitude }
-        val averageLat = totalLat / positions.size
-        val averageLng = totalLng / positions.size
-        return LatLng(averageLat, averageLng)
     }
 
     private fun createMarkerOption(markerInfo: MarkerInfo, icon: BitmapDescriptor? = null): MarkerOptions {
@@ -564,54 +520,6 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
         val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 
         return radiusEarth * c
-    }
-
-    private fun generateMarkerInfosInDistance(
-        currentLatLng: LatLng,
-        distance: Double,
-        icon: BitmapDescriptor? = null,
-        count: Int
-    ): List<MarkerInfo> {
-        val markerInfoList = mutableListOf<MarkerInfo>()
-
-        for (i in 0 until count) {
-            val offsetLatLng = calculateOffset(currentLatLng, distance, i * 360.0 / count)
-            val markerInfo = MarkerInfo(
-                id = "0",
-                title = "", // Set the title as needed
-                position = offsetLatLng,
-                distance = distance,
-                iconBitmapDescriptor = BitmapDescriptorFactory.defaultMarker(),
-                isWithinRadius = false // Set the value based on your criteria
-            )
-
-            markerInfoList.add(markerInfo)
-        }
-
-        return markerInfoList
-    }
-
-    private fun calculateOffset(latLng: LatLng, distance: Double, angle: Double): LatLng {
-        val radiusEarth = 6371e3 // Earth's radius in meters
-
-        val latRadians = Math.toRadians(latLng.latitude)
-        val lngRadians = Math.toRadians(latLng.longitude)
-        val angularDistance = distance / radiusEarth
-
-        val latOffset = Math.asin(
-            Math.sin(latRadians) * Math.cos(angularDistance) +
-                    Math.cos(latRadians) * Math.sin(angularDistance) * Math.cos(Math.toRadians(angle))
-        )
-
-        val lngOffset = lngRadians + Math.atan2(
-            Math.sin(Math.toRadians(angle)) * Math.sin(angularDistance) * Math.cos(latRadians),
-            Math.cos(angularDistance) - Math.sin(latRadians) * Math.sin(latOffset)
-        )
-
-        val offsetLatDegrees = Math.toDegrees(latOffset)
-        val offsetLngDegrees = Math.toDegrees(lngOffset)
-
-        return LatLng(offsetLatDegrees, offsetLngDegrees)
     }
 
     private fun speakOut(message: String) {
@@ -675,11 +583,11 @@ enum class TtsLanguage(val locale: Locale) {
 }
 
 enum class NotificationMessage(val template: String) {
-    CAUTION("Caution: There's a multiple road sign distance meters away, please stay alert."),
-    ATTENTION("Attention: Multiple road sign is distance meters ahead, watch out!"),
-    ALERT("Alert: Be prepared for a multiple road sign distance meters nearby. Take necessary action."),
-    NOTICE("Notice: Look out for a multiple road sign distance meters from your location. Ensure you're following the instructions."),
-    WARNING("Attention: There are multiple road signs located distance meters ahead. Please stay alert and pay close attention to these signs as they contain important information. You can find more details on the screen below."),
+    CAUTION("Caution: There's a multiple road sign distance away, please stay alert."),
+    ATTENTION("Attention: Multiple road sign is distance ahead, watch out!"),
+    ALERT("Alert: Be prepared for a multiple road sign distance nearby. Take necessary action."),
+    NOTICE("Notice: Look out for a multiple road sign distance from your location. Ensure you're following the instructions."),
+    WARNING("Attention: There are multiple road signs located meters ahead. Please stay alert and pay close attention to these signs as they contain important information. You can find more details on the screen below."),
     SIGN1("Road Sign: signName is distance meters away. Please pay attention."),
     SIGN2("Road Sign: There's a signName road sign distance meters ahead. Take note of any instructions."),
     SIGN3("Road Sign: Look out for a signName road sign distance meters from your location. Follow the indicated directions.");
@@ -700,7 +608,7 @@ enum class NotificationMessage(val template: String) {
     }
 }
 
-const val DISTANCE_RADIUS = 250.0
+const val DISTANCE_RADIUS = 3.0
 const val POLYLINE_WIDTH = 10f
 const val MAP_UPDATE_INTERVAL = 10000L
 const val CAMERA_ZOOM = 20f
