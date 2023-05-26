@@ -202,7 +202,6 @@ class SignupFragment : Fragment() {
     private fun showLastNameExistAlert(isNotValid: Boolean){
         binding.tietLastname.error = if (isNotValid) "Please enter your lastname" else null
     }
-
     private fun showTextMinimalAlert(isNotValid: Boolean, text: String) {
         if(text == "Password")
             binding.passET.error = if(isNotValid) "Password must be more than 8 characters" else null
