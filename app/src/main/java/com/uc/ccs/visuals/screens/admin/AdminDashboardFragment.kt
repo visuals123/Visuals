@@ -1,8 +1,11 @@
 package com.uc.ccs.visuals.screens.admin
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
-import android.view.ContextMenu
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -11,6 +14,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -19,7 +24,9 @@ import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.uc.ccs.visuals.R
+import com.uc.ccs.visuals.data.CsvDataRepository
 import com.uc.ccs.visuals.databinding.FragmentAdminDashboardBinding
+import com.uc.ccs.visuals.factories.AdminDashboardViewModelFactory
 import com.uc.ccs.visuals.screens.admin.tabs.signs.SignFragment
 import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
 import com.uc.ccs.visuals.screens.admin.tabs.users.UsersFragment
@@ -28,11 +35,15 @@ import com.uc.ccs.visuals.screens.settings.CsvData
 import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
 import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
 import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
 
 class AdminDashboardFragment : Fragment() {
 
     private lateinit var viewModel: AdminDashboardViewModel
     private lateinit var mapViewModel: MapViewModel
+    private lateinit var firestoreViewModel: FirestoreViewModel
 
     private var _binding: FragmentAdminDashboardBinding? = null
     private val binding get() = _binding!!
@@ -47,11 +58,6 @@ class AdminDashboardFragment : Fragment() {
         Toast.makeText(requireContext(), it.localizedMessage, Toast.LENGTH_SHORT).show()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -60,9 +66,21 @@ class AdminDashboardFragment : Fragment() {
         _binding = FragmentAdminDashboardBinding.inflate(inflater, container, false)
         (requireActivity() as AppCompatActivity).setSupportActionBar(binding.toolbar)
 
-        viewModel = ViewModelProvider(requireActivity()).get(AdminDashboardViewModel::class.java)
-        mapViewModel = ViewModelProvider(requireActivity()).get(MapViewModel::class.java)
+        val repository = CsvDataRepository(requireContext())
+        val viewModelFactory = AdminDashboardViewModelFactory(repository)
 
+        viewModel = ViewModelProvider(requireActivity(),viewModelFactory).get(AdminDashboardViewModel::class.java)
+        mapViewModel = ViewModelProvider(requireActivity()).get(MapViewModel::class.java)
+        firestoreViewModel = ViewModelProvider(requireActivity()).get(FirestoreViewModel::class.java)
+
+        with(binding) {
+            toolbar.title = getString(R.string.visuals)
+        }
+
+        return binding.root
+    }
+
+    private fun setupMenuBar() {
         menuHost = requireActivity()
         menuHost.addMenuProvider(object: MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -77,19 +95,26 @@ class AdminDashboardFragment : Fragment() {
                         findNavController().navigate(R.id.action_adminDashboardFragment_to_loginFragment)
                         true
                     }
+                    R.id.menu_import -> {
+                        // Handle CSV import click
+                        if (isStoragePermissionGranted()) {
+                            openFilePicker()
+                        } else {
+                            openFilePicker()
+                        }
+                        true
+                    }
                     else -> true
                 }
             }
 
         })
-
-
-        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupMenuBar()
         setupObservers()
         setupViews()
     }
@@ -114,7 +139,116 @@ class AdminDashboardFragment : Fragment() {
             mapViewModel.markers.observe(viewLifecycleOwner) {
                 totalCount2.text = it.count().toString()
             }
+
+            with(firestoreViewModel) {
+                operationState.observe(viewLifecycleOwner) { state ->
+                    when (state) {
+                        is FirestoreViewModel.OperationState.Success -> {
+                            viewModel.insertCsvDataToLocalDb(state.csvData)
+                        }
+                        FirestoreViewModel.OperationState.Loading -> {
+                            // Show loading dialog
+                        }
+                        is FirestoreViewModel.OperationState.Error -> {
+                            val exception = state.exception
+                            Toast.makeText(requireContext(), exception.localizedMessage, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+
+                viewModel.insertCsvDataToLocalDbState.observe(viewLifecycleOwner) { state ->
+                    when (state) {
+                        is LocalDBState.Success -> {
+                            Toast.makeText(requireContext(), getString(R.string.successfully_uploaded), Toast.LENGTH_SHORT).show()
+                        }
+
+                        is LocalDBState.Error -> {
+                            Toast.makeText(requireContext(), state.exception.localizedMessage, Toast.LENGTH_SHORT).show()
+                        }
+
+                        LocalDBState.Loading -> {}
+                    }
+                }
+            }
         }
+    }
+
+    private fun isStoragePermissionGranted(): Boolean {
+        return if (ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            true
+        } else {
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                STORAGE_PERMISSION_REQUEST_CODE
+            )
+            false
+        }
+    }
+
+    private fun openFilePicker() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "text/csv"
+        startActivityForResult(intent, FILE_PICKER_REQUEST_CODE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == FILE_PICKER_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            val selectedFileUri: Uri? = data?.data
+            selectedFileUri?.let {
+                val csvDataList = readCsvFile(selectedFileUri)
+                firestoreViewModel.saveCsvData(data = csvDataList)
+            }
+        }
+    }
+
+    private fun readCsvFile(fileUri: Uri): List<CsvData> {
+        val csvDataList = mutableListOf<CsvData>()
+
+        try {
+            requireContext().contentResolver.openInputStream(fileUri)?.use { inputStream ->
+                BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                    var line: String?
+                    var lineCount = 0
+                    while (reader.readLine().also { line = it } != null) {
+                        if (lineCount < 2) {
+                            lineCount++
+                            continue // Skip rows
+                        }
+
+                        val csvFields = line?.split(",") ?: continue
+                        if (csvFields.size >= 6) { // Check if the row has at least 6 fields
+                            val id = csvFields[0].trim()
+                            val code = csvFields[1].trim()
+                            val title = csvFields[2].trim()
+                            val description = csvFields[3].trim()
+                            val lat = csvFields[4].trim().removePrefix("\"")
+                            val long = csvFields[5].trim().removeSuffix("\"")
+                            val iconImageUrl = csvFields[6].trim()
+
+                            val csvData = CsvData(
+                                id = id,
+                                code = code,
+                                title = title,
+                                description = description,
+                                position = "$lat-$long",
+                                iconImageUrl = iconImageUrl
+                            )
+                            csvDataList.add(csvData)
+                        }
+                    }
+                }
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        return csvDataList
     }
 
     class TabPagerAdapter(fragmentManager: FragmentManager) :
@@ -139,6 +273,11 @@ class AdminDashboardFragment : Fragment() {
             fragmentList.add(fragment)
             fragmentTitleList.add(title)
         }
+    }
+
+    companion object {
+        private const val STORAGE_PERMISSION_REQUEST_CODE = 1
+        private const val FILE_PICKER_REQUEST_CODE = 2
     }
 
 }

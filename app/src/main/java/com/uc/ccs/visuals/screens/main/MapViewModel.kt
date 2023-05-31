@@ -10,8 +10,15 @@ import com.uc.ccs.visuals.screens.settings.CsvData
 
 class MapViewModel: ViewModel() {
 
+    /**
+     * Nearby markers
+     * */
     private val _markers = MutableLiveData<List<MarkerInfo>>()
     val markers: LiveData<List<MarkerInfo>> = _markers
+
+
+    private val _allMarkers = MutableLiveData<List<MarkerInfo>>()
+    val allMarkers: LiveData<List<MarkerInfo>> = _allMarkers
 
     private val _csvDataFromFirestore = MutableLiveData<List<CsvData>>()
     val csvDataFromFirestore: LiveData<List<CsvData>> get() = _csvDataFromFirestore
@@ -26,6 +33,11 @@ class MapViewModel: ViewModel() {
     val currentLatLng: LiveData<LatLng> get() = _currentLatLng
 
     fun setMarkers(markerOptionsList: List<MarkerInfo>) {
+        _markers.value = markerOptionsList
+    }
+
+    fun setAllMarkers(markerOptionsList: List<MarkerInfo>) {
+        _allMarkers.value = markerOptionsList
         _markers.value = markerOptionsList
     }
 

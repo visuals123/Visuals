@@ -10,7 +10,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.uc.ccs.visuals.R
+import com.uc.ccs.visuals.data.CsvDataRepository
 import com.uc.ccs.visuals.databinding.FragmentSplashScreenBinding
+import com.uc.ccs.visuals.factories.AdminDashboardViewModelFactory
 import com.uc.ccs.visuals.screens.admin.AdminDashboardViewModel
 import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
 import com.uc.ccs.visuals.screens.login.UserRoles
@@ -39,8 +41,15 @@ class SplashFragment : Fragment() {
     }
 
     private val onSuccess: (List<CsvData>) -> Unit = { csvData ->
-        mapViewModel.setCsvDataState(CsvDataState.onSuccess(csvData))
+        /**
+         * [05/29/2023] Temporary Disabled: Currently using local db to show markers
+         *
+         * mapViewModel.setCsvDataState(CsvDataState.onSuccess(csvData))
+         *
+         * */
+
         adminViewModel.setCsvData(csvData)
+        adminViewModel.insertCsvDataToLocalDb(csvData)
 
         if(SharedPreferenceManager.getRoles(requireContext()) == UserRoles.ADMIN.value)
             firestoreViewModel.getUsers(onSuccessGetUsers, onFailure)
@@ -57,9 +66,12 @@ class SplashFragment : Fragment() {
         // Inflate the layout for this fragment
         _binding = FragmentSplashScreenBinding.inflate(inflater, container, false)
 
+        val repository = CsvDataRepository(requireContext())
+        val viewModelFactory = AdminDashboardViewModelFactory(repository)
+
         firestoreViewModel = ViewModelProvider(requireActivity()).get(FirestoreViewModel::class.java)
         mapViewModel = ViewModelProvider(requireActivity()).get(MapViewModel::class.java)
-        adminViewModel = ViewModelProvider(requireActivity()).get(AdminDashboardViewModel::class.java)
+        adminViewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(AdminDashboardViewModel::class.java)
 
         return binding.root
     }

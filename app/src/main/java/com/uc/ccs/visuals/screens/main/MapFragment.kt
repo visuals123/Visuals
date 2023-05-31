@@ -4,12 +4,16 @@ import android.Manifest
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.LayerDrawable
 import android.location.Location
+import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
@@ -18,7 +22,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -54,14 +57,21 @@ import com.google.maps.GeoApiContext
 import com.google.maps.model.DirectionsResult
 import com.google.maps.model.TravelMode
 import com.uc.ccs.visuals.R
+import com.uc.ccs.visuals.data.CsvDataRepository
 import com.uc.ccs.visuals.databinding.FragmentMapBinding
+import com.uc.ccs.visuals.factories.AdminDashboardViewModelFactory
+import com.uc.ccs.visuals.screens.admin.AdminDashboardViewModel
+import com.uc.ccs.visuals.screens.admin.LocalDBState
 import com.uc.ccs.visuals.screens.main.adapter.ViewPagerAdapter
 import com.uc.ccs.visuals.screens.main.models.MarkerInfo
+import com.uc.ccs.visuals.screens.main.service.LocationTrackingService
+import com.uc.ccs.visuals.utils.extensions.toMarkerInfoList
 import java.io.IOException
 import java.util.Locale
 import kotlin.math.ceil
 
-class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener {
+class MapFragment : Fragment(), OnMapReadyCallback,
+    TextToSpeech.OnInitListener, LocationTrackingService.LocationUpdateListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -74,11 +84,26 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
     private lateinit var binding: FragmentMapBinding
 
     private lateinit var viewModel: MapViewModel
+    private lateinit var adminViewModel: AdminDashboardViewModel
     private lateinit var mapFragment: SupportMapFragment
 
     private var tts: TextToSpeech? = null
 
     private var counter = 0
+    private var isServiceRegistered = false
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            val binder = service as? LocationTrackingService.LocalBinder
+            val locationTrackingService = binder?.getService()
+            locationTrackingService?.setLocationUpdateListener(this@MapFragment)
+            isServiceRegistered = true
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            isServiceRegistered = false
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -87,6 +112,10 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
 
         Places.initialize(requireContext(), resources.getString(R.string.google_map_api_key))
 
+        val repository = CsvDataRepository(requireContext())
+        val viewModelFactory = AdminDashboardViewModelFactory(repository)
+
+        adminViewModel = ViewModelProvider(requireActivity(),viewModelFactory).get(AdminDashboardViewModel::class.java)
         viewModel = ViewModelProvider(requireActivity()).get(MapViewModel::class.java)
 
         binding = FragmentMapBinding.inflate(inflater, container, false)
@@ -151,11 +180,14 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
                         if (latLng != null) {
                             drawPathToDestination(latLng)
                             animateCamera(latLng, CAMERA_ZOOM_DIRECTION)
+
+                            setupService()
                         }
                         isDirectionsMode = false
                     } else {
                         animateFabIconChange(R.drawable.ic_direction, false)
                         clearMap()
+                        unbindService()
                         autocompleteFragment.setText(getString(R.string.emptyString))
                         isVisible = false
                         isDirectionsMode = true
@@ -172,7 +204,6 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
             fadeOut.addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
                     fabDirections.setImageResource(newIconResId)
-                    val tintColor = if (isDirectionsMode) R.color.md_red_300 else R.color.colorPrimary
                     val backgroundColor = if (isDirectionsMode) R.color.md_red_300 else R.color.colorPrimary
                     fabDirections.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.white))
                     fabDirections.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), backgroundColor))
@@ -271,6 +302,9 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
                 updateMapMarkers(latLng)
             }
 
+            /**
+             * [05/29/2023] Temporary Disabled: Currently using local db to show markers
+             * */
             csvDataState.observe(viewLifecycleOwner) {state ->
                 when (state) {
                     CsvDataState.onLoad -> {}
@@ -283,6 +317,9 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
                 }
             }
 
+            /**
+             * [05/29/2023] Temporary Disabled: Currently using local db to show markers
+             * */
             csvDataFromFirestore.observe(viewLifecycleOwner) { csvData ->
                 val convertToMarkerInfoList = csvData.map { item ->
                     val latLng = item.position.split("-")
@@ -297,6 +334,20 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
                     )
                 }
                 setMarkers(convertToMarkerInfoList)
+            }
+
+            adminViewModel.insertCsvDataToLocalDbState.observe(viewLifecycleOwner) { state ->
+                when (state) {
+                    is LocalDBState.Success -> {
+                        setAllMarkers(state.csvData.toMarkerInfoList())
+                    }
+
+                    is LocalDBState.Error -> {
+                        Toast.makeText(requireContext(), state.exception.localizedMessage, Toast.LENGTH_SHORT).show()
+                    }
+
+                    LocalDBState.Loading -> {}
+                }
             }
 
             markers.observe(viewLifecycleOwner) { markers ->
@@ -458,9 +509,9 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
     private fun toDistanceString(distance: Double?) : String {
         val value = ceil(distance ?: 0.0).toInt().toString()
         return if (ceil(distance ?: 0.0).toInt() > 1) {
-            value.plus("meters")
+            value.plus(" meters")
         } else {
-            value.plus("meter")
+            value.plus(" meter")
         }
     }
     private fun filterMarkersByRadius(
@@ -522,7 +573,19 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
         return radiusEarth * c
     }
 
-    private fun speakOut(message: String) {
+    private fun setupService() {
+        val serviceIntent = Intent(requireContext(), LocationTrackingService::class.java)
+        requireContext().bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            requireContext().startForegroundService(serviceIntent)
+        }
+    }
+
+    private fun unbindService() {
+        requireContext().unbindService(serviceConnection)
+    }
+
+    override fun speakOut(message: String) {
         tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onDone(utteranceId: String?) {
                 // TTS is done speaking
@@ -539,6 +602,47 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
             }
         })
         tts!!.speak(message, TextToSpeech.QUEUE_FLUSH, null,"")
+    }
+
+    override fun getMarkerMessageByLocation(latLng: LatLng): LocationTrackingService.NotificationContent? {
+        return with(viewModel) {
+            val filterByRadius = latLng?.let {
+                filterMarkersByRadius(
+                    it,
+                    allMarkers.value ?: emptyList(),
+                    DISTANCE_RADIUS
+                )
+            }
+
+            filterByRadius?.first?.map { markerInfo ->
+                val markerOptions = MarkerOptions()
+                    .position(markerInfo.position)
+                    .icon(markerInfo.icon)
+                mMap.addMarker(markerOptions)
+            }
+
+            val newMarkers = filterByRadius?.second ?: emptyList()
+
+            val withinRadius = newMarkers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
+
+            val hasMultipleMarker = withinRadius.size > 1
+            if (hasMultipleMarker) {
+                speakOut(NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance)))
+                LocationTrackingService.NotificationContent(
+                    title = "Multiple road signs",
+                    description = NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance))
+                )
+            } else {
+                if(withinRadius.isNotEmpty()) {
+                    val item = withinRadius[0]
+                    speakOut("In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}")
+                    LocationTrackingService.NotificationContent(
+                        title = item.title,
+                        description= "In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}"
+                    )
+                } else null
+            }
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -573,6 +677,15 @@ class MapFragment : Fragment(), OnMapReadyCallback, TextToSpeech.OnInitListener 
             tts!!.stop()
             tts!!.shutdown()
         }
+    }
+
+    override fun getViewModel(): MapViewModel {
+        return viewModel
+    }
+
+    override fun onLocationUpdate(location: Location) {
+        val latlng = LatLng(location.latitude, location.longitude)
+        updateMapMarkers(latlng)
     }
 
 }

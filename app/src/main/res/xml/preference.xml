@@ -11,14 +11,15 @@
             android:summary="@string/speech_summary" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="@string/category_import">
+    <PreferenceCategory android:title="@string/category_import"
+        app:isPreferenceVisible="false">
         <Preference
             android:title="@string/text_import"
             android:key="@string/text_import"
             android:summary="@string/csv_import_summary"/>
     </PreferenceCategory>
 
-    <PreferenceCategory>
+    <PreferenceCategory android:title="@string/account">
         <Preference
             android:title="@string/logout"
             android:key="logout_preference" />

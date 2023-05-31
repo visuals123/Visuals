@@ -15,7 +15,7 @@ class FirestoreViewModel : ViewModel() {
     fun saveCsvData(data: List<CsvData>) {
         _operationState.value = OperationState.Loading
         repository.saveMultipleData(ROAD_SIGN_COLLECTION_PATH, data, {
-            _operationState.value = OperationState.Success
+            _operationState.value = OperationState.Success(data)
         }, {
             _operationState.value = OperationState.Error(it)
         })
@@ -40,7 +40,7 @@ class FirestoreViewModel : ViewModel() {
 
     sealed class OperationState {
         object Loading : OperationState()
-        object Success : OperationState()
+        data class Success(val csvData: List<CsvData>) : OperationState()
         data class Error(val exception: Exception) : OperationState()
     }
 }

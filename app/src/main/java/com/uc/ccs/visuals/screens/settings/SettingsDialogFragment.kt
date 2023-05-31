@@ -54,7 +54,7 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
         with(firestoreViewModel) {
             operationState.observe(viewLifecycleOwner) { state ->
                 when (state) {
-                    FirestoreViewModel.OperationState.Success -> {
+                    is FirestoreViewModel.OperationState.Success -> {
                         Toast.makeText(requireContext(), getString(R.string.successfully_uploaded), Toast.LENGTH_SHORT).show()
                     }
                     FirestoreViewModel.OperationState.Loading -> {
@@ -64,6 +64,8 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
                         val exception = state.exception
                         Toast.makeText(requireContext(), exception.localizedMessage, Toast.LENGTH_SHORT).show()
                     }
+
+                    else -> {}
                 }
             }
         }
@@ -102,6 +104,9 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
                 true
             }
 
+            /**
+             * [05/29/2023] Temporary disabled
+             * */
             findPreference<Preference>(getString(R.string.text_import))?.setOnPreferenceClickListener {
                 // Handle CSV import click
                 if (isStoragePermissionGranted()) {
