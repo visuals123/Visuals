@@ -54,6 +54,7 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 import com.google.maps.DirectionsApi
 import com.google.maps.DirectionsApiRequest
 import com.google.maps.GeoApiContext
+import com.google.maps.errors.ZeroResultsException
 import com.google.maps.model.DirectionsResult
 import com.google.maps.model.TravelMode
 import com.uc.ccs.visuals.R
@@ -95,6 +96,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
     private var counter = 0
     private var isServiceRegistered = false
+    private var serviceIntent: Intent? = null
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -196,7 +198,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                                         )
                                                         animateCamera(
                                                             currentLatLng,
-                                                            CAMERA_ZOOM_DIRECTION
+                                                            CAMERA_ZOOM
                                                         )
                                                         updateMapMarkers(currentLatLng)
                                                     }
@@ -308,11 +310,17 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             } else {
                 Toast.makeText(requireContext(), "No routes found", Toast.LENGTH_SHORT).show()
             }
+        } catch (e: ZeroResultsException) {
+            Log.e("Exception", "ZeroResultsException: ${e.message}")
+            e.printStackTrace()
         } catch (e: ApiException) {
+            Log.e("Exception", "ApiException: ${e.message}")
             e.printStackTrace()
         } catch (e: InterruptedException) {
+            Log.e("Exception", "InterruptedException: ${e.message}")
             e.printStackTrace()
         } catch (e: IOException) {
+            Log.e("Exception", "IOException: ${e.message}")
             e.printStackTrace()
         }
     }
@@ -416,7 +424,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 val filterByRadius = latLng?.let {
                     filterMarkersByRadius(
                         it,
-                        markers.value ?: emptyList(),
+                        allMarkers.value ?: emptyList(),
                         DISTANCE_RADIUS
                     )
                 }
@@ -479,7 +487,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                     override fun onLocationResult(p0: LocationResult) {
                         p0.lastLocation?.let { location ->
                             val currentLatLng = LatLng(location.latitude, location.longitude)
-                            viewModel.setCurrentLatLng(currentLatLng)
+                            //viewModel.setCurrentLatLng(currentLatLng)
                             animateCamera(currentLatLng, CAMERA_ZOOM_DEFAULT)
                         }
                     }
@@ -579,6 +587,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 position = position,
                 description = marker.description,
                 distance = distance,
+                iconImageUrl = marker.iconImageUrl,
                 iconBitmapDescriptor = marker.iconBitmapDescriptor,
                 isWithinRadius = isWithinRadius
             )
@@ -622,7 +631,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     }
 
     private fun setupService() {
-        val serviceIntent = Intent(requireContext(), LocationTrackingService::class.java)
+        serviceIntent = Intent(requireContext(), LocationTrackingService::class.java)
         requireContext().bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             requireContext().startForegroundService(serviceIntent)
@@ -631,6 +640,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
     private fun unbindService() {
         requireContext().unbindService(serviceConnection)
+        requireContext().stopService(serviceIntent)
     }
 
     override fun speakOut(message: String) {
@@ -748,7 +758,7 @@ enum class NotificationMessage(val template: String) {
     ATTENTION("Attention: Multiple road sign is distance ahead, watch out!"),
     ALERT("Alert: Be prepared for a multiple road sign distance nearby. Take necessary action."),
     NOTICE("Notice: Look out for a multiple road sign distance from your location. Ensure you're following the instructions."),
-    WARNING("Attention: There are multiple road signs located distance meters ahead. Please stay alert and pay close attention to these signs as they contain important information. You can find more details on the screen below."),
+    WARNING("Attention: There are multiple road signs located distance ahead. Please stay alert and pay close attention to these signs as they contain important information. You can find more details on the screen below."),
     SIGN1("Road Sign: signName is distance meters away. Please pay attention."),
     SIGN2("Road Sign: There's a signName road sign distance meters ahead. Take note of any instructions."),
     SIGN3("Road Sign: Look out for a signName road sign distance meters from your location. Follow the indicated directions.");
