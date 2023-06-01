@@ -65,6 +65,10 @@ import com.uc.ccs.visuals.screens.admin.LocalDBState
 import com.uc.ccs.visuals.screens.main.adapter.ViewPagerAdapter
 import com.uc.ccs.visuals.screens.main.models.MarkerInfo
 import com.uc.ccs.visuals.screens.main.service.LocationTrackingService
+import com.uc.ccs.visuals.utils.extensions.checkLocationPermissions
+import com.uc.ccs.visuals.utils.extensions.hasLocationPermission
+import com.uc.ccs.visuals.utils.extensions.requestLocationPermissions
+import com.uc.ccs.visuals.utils.extensions.showConfirmationDialog
 import com.uc.ccs.visuals.utils.extensions.toMarkerInfoList
 import java.io.IOException
 import java.util.Locale
@@ -126,7 +130,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
         binding.bottomNavView.background = null
 
-        // Initialize AutocompleteSupportFragment
         setupAutoComplete()
 
         tts = TextToSpeech(requireContext(), this)
@@ -153,15 +156,11 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 }
 
                 override fun onError(status: Status) {
-                    Toast.makeText(requireContext(), "Error: ${status.statusMessage}", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(requireContext(), "Error: ${status.statusMessage}", Toast.LENGTH_SHORT).show()
                     autocompleteFragment.setText("")
                 }
             })
         }
-
-        childFragmentManager.beginTransaction()
-            .replace(R.id.cl_actv_container, autocompleteFragment)
-            .commit()
     }
 
     private fun clearMap() {
@@ -172,30 +171,77 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
     private fun setupDirectionButton(bool: Boolean, latLng: LatLng?) {
         with(binding) {
-            binding.fabDirections.apply {
-                isVisible = bool
-                setOnClickListener {
-                    if (isDirectionsMode) {
-                        animateFabIconChange(R.drawable.ic_close, true)
-                        if (latLng != null) {
-                            drawPathToDestination(latLng)
-                            animateCamera(latLng, CAMERA_ZOOM_DIRECTION)
+            with(viewModel) {
+                fabDirections.apply {
+                    isVisible = bool
+                    setOnClickListener {
+                        if (isDirectionsMode) {
+                            showConfirmationDialog(
+                                getString(R.string.dialog_title_start_ride),
+                                getString(R.string.dialog_message_start_ride),
+                                getString(R.string.dialog_positive_button_start_ride),
+                                getString(R.string.dialog_negative_button_start_ride),
+                                {
+                                    animateFabIconChange(R.drawable.ic_close, true)
+                                    if (latLng != null) {
+                                        drawPathToDestination(latLng)
 
-                            setupService()
+                                        if (checkLocationPermissions(LOCATION_PERMISSION_REQUEST_CODE)) {
+                                            try {
+                                                fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                                                    location?.let {
+                                                        val currentLatLng = LatLng(
+                                                            location.latitude,
+                                                            location.longitude
+                                                        )
+                                                        animateCamera(
+                                                            currentLatLng,
+                                                            CAMERA_ZOOM_DIRECTION
+                                                        )
+                                                        updateMapMarkers(currentLatLng)
+                                                    }
+                                                }
+                                            } catch (securityException: SecurityException) {
+                                                Log.e(
+                                                    "setupDirectionButton",
+                                                    "SecurityException: ${securityException.message}"
+                                                )
+                                            }
+                                        }
+
+                                        setupService()
+                                    }
+                                    isDirectionsMode = false
+                                },
+                                { }
+                            )
+                        } else {
+                            showConfirmationDialog(
+                                getString(R.string.dialog_title_end_ride),
+                                getString(R.string.dialog_message_end_ride),
+                                getString(R.string.dialog_positive_button_end_ride),
+                                getString(R.string.dialog_negative_button_end_ride),
+                                {
+                                    animateFabIconChange(R.drawable.ic_direction, false)
+                                    clearMap()
+                                    unbindService()
+                                    stopLocationUpdates()
+                                    setMarkers(emptyList())
+                                    setupViewPager(emptyList())
+
+                                    autocompleteFragment.setText(getString(R.string.emptyString))
+                                    isVisible = false
+                                    isDirectionsMode = true
+                                },
+                                { }
+                            )
                         }
-                        isDirectionsMode = false
-                    } else {
-                        animateFabIconChange(R.drawable.ic_direction, false)
-                        clearMap()
-                        unbindService()
-                        autocompleteFragment.setText(getString(R.string.emptyString))
-                        isVisible = false
-                        isDirectionsMode = true
                     }
                 }
             }
         }
     }
+
 
     private fun animateFabIconChange(@DrawableRes newIconResId: Int, isDirectionsMode: Boolean) {
         with(binding) {
@@ -278,7 +324,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             .replace(R.id.cl_actv_container, autocompleteFragment)
             .commit()
 
-        // Adding a callback on back pressed to replace the standard up navigation with popBackStack
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
@@ -298,8 +343,12 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     private fun FragmentMapBinding.setupObservers() {
         with(viewModel) {
 
+
+            /**
+             * [06/01/2023] Temporary Disabled: Changed Flow
+             * */
             currentLatLng.observe(viewLifecycleOwner) {latLng ->
-                updateMapMarkers(latLng)
+                //updateMapMarkers(latLng)
             }
 
             /**
@@ -334,6 +383,11 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                     )
                 }
                 setMarkers(convertToMarkerInfoList)
+            }
+
+            startARide.observe(viewLifecycleOwner) {
+                if (it) {
+                }
             }
 
             adminViewModel.insertCsvDataToLocalDbState.observe(viewLifecycleOwner) { state ->
@@ -406,64 +460,59 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     override fun onMapReady(p0: GoogleMap) {
         mMap = p0
 
-        if (ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            mMap.isMyLocationEnabled = true
-            mMap.uiSettings.isMyLocationButtonEnabled = false
-            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-                location?.let {
-                    val currentLatLng = LatLng(location.latitude, location.longitude)
-                    animateCamera(currentLatLng, CAMERA_ZOOM_DEFAULT)
-                    updateMapMarkers(currentLatLng)
-                }
-            }
+        if (requireContext().hasLocationPermission()) {
+            try {
+                mMap.isMyLocationEnabled = true
+                mMap.uiSettings.isMyLocationButtonEnabled = false
 
-            // Inside your initialization/setup code
-            locationRequest = LocationRequest.Builder(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                MAP_UPDATE_INTERVAL,
-            ).apply {
-                setMinUpdateDistanceMeters(5f)
-                setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
-                setWaitForAccurateLocation(true)
-            }.build()
+                // Inside your initialization/setup code
+                locationRequest = LocationRequest.Builder(
+                    Priority.PRIORITY_HIGH_ACCURACY,
+                    MAP_UPDATE_INTERVAL,
+                ).apply {
+                    setMinUpdateDistanceMeters(5f)
+                    setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+                    setWaitForAccurateLocation(true)
+                }.build()
 
-            locationCallback = object : LocationCallback() {
-                override fun onLocationResult(p0: LocationResult) {
-                    p0.lastLocation?.let { location ->
-                        val currentLatLng = LatLng(location.latitude, location.longitude)
-                        viewModel.setCurrentLatLng(currentLatLng)
+                locationCallback = object : LocationCallback() {
+                    override fun onLocationResult(p0: LocationResult) {
+                        p0.lastLocation?.let { location ->
+                            val currentLatLng = LatLng(location.latitude, location.longitude)
+                            viewModel.setCurrentLatLng(currentLatLng)
+                            animateCamera(currentLatLng, CAMERA_ZOOM_DEFAULT)
+                        }
                     }
                 }
-            }
 
-            mMap.setOnMarkerClickListener { marker ->
+                mMap.setOnMarkerClickListener { marker ->
+                    binding.bottomNavView.selectedItemId = R.id.menu_notif
 
-                /**
-                 * will use once we need to trap the on markers clicked
-                 *
-                 * val customInfo = marker.title
+                    /**
+                     * will use once we need to trap the on markers clicked
+                     *
+                     * val customInfo = marker.title
                     if (customInfo != null) {
-                        binding.bottomNavView.selectedItemId = R.id.menu_notif
+                    binding.bottomNavView.selectedItemId = R.id.menu_notif
                     }
-                */
+                     */
 
-                binding.bottomNavView.selectedItemId = R.id.menu_notif
+                    true
+                }
 
-                true
+                fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+
+            } catch (securityException: SecurityException) {
+
+                Log.e("onMapReady", "SecurityException: ${securityException.message}")
             }
-
-            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
         } else {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQUEST_CODE
-            )
+            requestLocationPermissions(LOCATION_PERMISSION_REQUEST_CODE)
         }
+    }
+
+    private fun stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     private fun enableMyLocation() {
@@ -476,7 +525,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             location?.let {
                 val currentLatLng = LatLng(location.latitude, location.longitude)
                 animateCamera(currentLatLng, CAMERA_ZOOM)
-                updateMapMarkers(currentLatLng)
             }
         }
     }
@@ -500,7 +548,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 }
             }
 
-            clViewpagerContainer.isVisible = true
+            clViewpagerContainer.isVisible = markers.isNotEmpty()
             circleIndicator.isVisible = hasMultipleMarker
             circleIndicator.setViewPager(viewPager)
         }
@@ -700,7 +748,7 @@ enum class NotificationMessage(val template: String) {
     ATTENTION("Attention: Multiple road sign is distance ahead, watch out!"),
     ALERT("Alert: Be prepared for a multiple road sign distance nearby. Take necessary action."),
     NOTICE("Notice: Look out for a multiple road sign distance from your location. Ensure you're following the instructions."),
-    WARNING("Attention: There are multiple road signs located meters ahead. Please stay alert and pay close attention to these signs as they contain important information. You can find more details on the screen below."),
+    WARNING("Attention: There are multiple road signs located distance meters ahead. Please stay alert and pay close attention to these signs as they contain important information. You can find more details on the screen below."),
     SIGN1("Road Sign: signName is distance meters away. Please pay attention."),
     SIGN2("Road Sign: There's a signName road sign distance meters ahead. Take note of any instructions."),
     SIGN3("Road Sign: Look out for a signName road sign distance meters from your location. Follow the indicated directions.");

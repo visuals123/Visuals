@@ -1,12 +1,12 @@
 package com.uc.ccs.visuals.screens.main
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,8 +22,6 @@ class SignListDialogFragment : BottomSheetDialogFragment() {
 
     private var _binding: FragmentSignListDialogListDialogBinding? = null
     private val binding get() = _binding!!
-
-    private val markerInfos = mutableListOf<MarkerInfo>()
 
     private lateinit var viewModel: MapViewModel
 
@@ -41,10 +39,43 @@ class SignListDialogFragment : BottomSheetDialogFragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.list.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = MarkerInfoAdapter()
-            addItemDecoration(DividerItemDecoration(context, LinearLayoutManager.VERTICAL))
+        with(binding) {
+            with(viewModel) {
+                list.apply {
+
+                    btnStartRide.setOnClickListener {
+                        setStartARide(true)
+                        dismiss()
+                    }
+
+                    markers.observe(viewLifecycleOwner) { markers ->
+                        if (markers.isNotEmpty()) {
+                            showList(true)
+
+                            val marketAdapter = MarkerInfoAdapter().apply {
+                                submitList(markers)
+                            }
+
+                            layoutManager = LinearLayoutManager(context)
+                            adapter = marketAdapter
+
+                        } else {
+                            showList(false)
+                        }
+                    }
+
+                    layoutManager = LinearLayoutManager(context)
+                    adapter = MarkerInfoAdapter()
+                    addItemDecoration(DividerItemDecoration(context, LinearLayoutManager.VERTICAL))
+                }
+            }
+        }
+    }
+
+    private fun showList(bool: Boolean) {
+        binding.apply {
+            clNotEmptyNotification.isVisible = bool
+            clEmptyNotification.isVisible = bool.not()
         }
     }
 
@@ -57,13 +88,7 @@ class SignListDialogFragment : BottomSheetDialogFragment() {
 
         private val markerInfoList = mutableListOf<Any>()
 
-        init {
-            viewModel.markers.observe(viewLifecycleOwner) { markers ->
-                submitList(markers)
-            }
-        }
-
-        private fun submitList(list: List<MarkerInfo>) {
+        fun submitList(list: List<MarkerInfo>) {
             markerInfoList.clear()
 
             val groupedMarkers = list.groupBy { markerInfo ->

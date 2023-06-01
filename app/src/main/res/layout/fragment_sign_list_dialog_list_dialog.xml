@@ -8,36 +8,84 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_dialog_fragment"
-        android:clipToPadding="false"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:padding="@dimen/padding_xstandard">
+        android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/tv_dialog_title"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/cl_not_empty_notification"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/text_size_large"
-            android:textColor="@color/black"
-            android:layout_marginTop="@dimen/margin_standard"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif"
-            android:text="@string/notifications"
-            app:layout_constraintTop_toTopOf="parent"/>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/list"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:background="@drawable/bg_dialog_fragment"
             android:clipToPadding="false"
-            android:paddingTop="@dimen/list_item_spacing_half"
-            android:paddingBottom="@dimen/list_item_spacing_half"
-            app:layout_constraintTop_toBottomOf="@+id/tv_dialog_title"
-            tools:context=".screens.main.SignListDialogFragment"
-            tools:listitem="@layout/fragment_sign_list_dialog_list_dialog_item" />
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:padding="@dimen/padding_xstandard">
+
+            <TextView
+                android:id="@+id/tv_dialog_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_size_large"
+                android:textColor="@color/black"
+                android:layout_marginTop="@dimen/margin_standard"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif"
+                android:text="@string/notifications"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:paddingTop="@dimen/list_item_spacing_half"
+                android:paddingBottom="@dimen/list_item_spacing_half"
+                app:layout_constraintTop_toBottomOf="@+id/tv_dialog_title"
+                tools:context=".screens.main.SignListDialogFragment"
+                tools:listitem="@layout/fragment_sign_list_dialog_list_dialog_item" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/cl_empty_notification"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_empty_notification"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0">
+
+            <TextView
+                android:id="@+id/tv_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_standard"
+                android:text="@string/start_ride_message"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:textSize="@dimen/text_size_xxlarge"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_start_ride"
+                style="@style/Widget.Material3.Button.IconButton.Filled"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/size_60dp"
+                android:layout_marginTop="@dimen/margin_standard"
+                android:layout_marginBottom="@dimen/margin_medium"
+                android:layout_marginHorizontal="@dimen/margin_large"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_message"
+                android:text="@string/select_a_destination"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

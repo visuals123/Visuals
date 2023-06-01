@@ -49,6 +49,20 @@
     <string name="successfully_uploaded">Successfully Uploaded</string>
     <string name="emptyString" />
     <string name="account">Account</string>
+    <string name="select_a_destination">Select a Destination</string>
+
+    <string name="dialog_title_start_ride">Start a Ride</string>
+    <string name="dialog_message_start_ride">Are you ready to start an exciting ride?</string>
+    <string name="dialog_positive_button_start_ride">Let\'s go!</string>
+    <string name="dialog_negative_button_start_ride">Not now</string>
+
+    <string name="dialog_title_end_ride">End Your Ride</string>
+    <string name="dialog_message_end_ride">Are you sure you want to end your ride?</string>
+    <string name="start_ride_message"><font fgcolor="#0D47A1">You\'re just one step away from an amazing ride! \n<b>Start your journey now</b> \nto receive important <b>Notifications.</b></font></string>
+    <string name="dialog_option_finish_ride">Finish ride</string>
+    <string name="dialog_option_keep_riding">Keep riding</string>
+    <string name="dialog_positive_button_end_ride">Yes, finish it</string>
+    <string name="dialog_negative_button_end_ride">No, keep riding</string>
 
     <string-array name="language_entries">
         <item>English</item>

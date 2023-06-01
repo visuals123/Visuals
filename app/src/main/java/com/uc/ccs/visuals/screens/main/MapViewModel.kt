@@ -32,13 +32,19 @@ class MapViewModel: ViewModel() {
     private val _currentLatLng = MutableLiveData<LatLng>()
     val currentLatLng: LiveData<LatLng> get() = _currentLatLng
 
+    private val _startARide = MutableLiveData<Boolean>(false)
+    val startARide: LiveData<Boolean> get() = _startARide
+
     fun setMarkers(markerOptionsList: List<MarkerInfo>) {
         _markers.value = markerOptionsList
     }
 
+    fun setStartARide(boolean: Boolean) {
+        _startARide.value = boolean
+    }
+
     fun setAllMarkers(markerOptionsList: List<MarkerInfo>) {
         _allMarkers.value = markerOptionsList
-        _markers.value = markerOptionsList
     }
 
     fun setCurrentUser(user: UserItem) {
