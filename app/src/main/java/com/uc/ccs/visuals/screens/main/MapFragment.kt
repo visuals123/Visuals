@@ -13,7 +13,9 @@ import android.content.res.ColorStateList
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
@@ -185,33 +187,39 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                 getString(R.string.dialog_negative_button_start_ride),
                                 {
                                     animateFabIconChange(R.drawable.ic_close, true)
+
                                     if (latLng != null) {
-                                        drawPathToDestination(latLng)
 
-                                        if (checkLocationPermissions(LOCATION_PERMISSION_REQUEST_CODE)) {
-                                            try {
-                                                fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-                                                    location?.let {
-                                                        val currentLatLng = LatLng(
-                                                            location.latitude,
-                                                            location.longitude
-                                                        )
-                                                        animateCamera(
-                                                            currentLatLng,
-                                                            CAMERA_ZOOM
-                                                        )
-                                                        updateMapMarkers(currentLatLng)
+                                        Toast.makeText(requireContext(), getString(R.string.tts_preparing_your_ride), Toast.LENGTH_SHORT).show()
+
+                                        Handler(Looper.getMainLooper()).postDelayed({
+                                            drawPathToDestination(latLng)
+
+                                            if (checkLocationPermissions(LOCATION_PERMISSION_REQUEST_CODE)) {
+                                                try {
+                                                    fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                                                        location?.let {
+                                                            val currentLatLng = LatLng(
+                                                                location.latitude,
+                                                                location.longitude
+                                                            )
+                                                            animateCamera(
+                                                                currentLatLng,
+                                                                CAMERA_ZOOM
+                                                            )
+                                                            updateMapMarkers(currentLatLng)
+                                                        }
                                                     }
+                                                } catch (securityException: SecurityException) {
+                                                    Log.e(
+                                                        "setupDirectionButton",
+                                                        "SecurityException: ${securityException.message}"
+                                                    )
                                                 }
-                                            } catch (securityException: SecurityException) {
-                                                Log.e(
-                                                    "setupDirectionButton",
-                                                    "SecurityException: ${securityException.message}"
-                                                )
                                             }
-                                        }
+                                            setupService()
+                                        },2000)
 
-                                        setupService()
                                     }
                                     isDirectionsMode = false
                                 },
@@ -234,6 +242,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                     autocompleteFragment.setText(getString(R.string.emptyString))
                                     isVisible = false
                                     isDirectionsMode = true
+
+                                    speakOut(getString(R.string.tts_thank_you_for_riding_with_us))
                                 },
                                 { }
                             )
@@ -288,12 +298,21 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             .apiKey(getString(R.string.google_map_api_key))
             .build()
 
-        val request: DirectionsApiRequest = DirectionsApi.newRequest(geoApiContext)
-            .mode(TravelMode.DRIVING)
-            .origin("${originLatLng?.latitude},${originLatLng?.longitude}")
-            .destination("${destinationLatLng.latitude},${destinationLatLng.longitude}")
+        /**
+         * for logging
+         * */
+        val requestUrl = "https://maps.googleapis.com/maps/api/directions/json?" +
+                "origin=${originLatLng?.latitude},${originLatLng?.longitude}" +
+                "&destination=${destinationLatLng.latitude},${destinationLatLng.longitude}" +
+                "&mode=driving" +
+                "&key=${getString(R.string.google_map_api_key)}"
 
         try {
+            val request: DirectionsApiRequest = DirectionsApi.newRequest(geoApiContext)
+                .mode(TravelMode.DRIVING)
+                .origin("${originLatLng?.latitude},${originLatLng?.longitude}")
+                .destination("${destinationLatLng.latitude},${destinationLatLng.longitude}")
+
             val result: DirectionsResult = request.await()
 
             if (result.routes.isNotEmpty()) {
@@ -487,8 +506,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                     override fun onLocationResult(p0: LocationResult) {
                         p0.lastLocation?.let { location ->
                             val currentLatLng = LatLng(location.latitude, location.longitude)
-                            //viewModel.setCurrentLatLng(currentLatLng)
-                            animateCamera(currentLatLng, CAMERA_ZOOM_DEFAULT)
+                            viewModel.setCurrentLatLng(currentLatLng)
+                            animateCamera(currentLatLng, CAMERA_ZOOM)
                         }
                     }
                 }
@@ -782,7 +801,7 @@ enum class NotificationMessage(val template: String) {
 const val DISTANCE_RADIUS = 3.0
 const val POLYLINE_WIDTH = 10f
 const val MAP_UPDATE_INTERVAL = 10000L
-const val CAMERA_ZOOM = 20f
+const val CAMERA_ZOOM = 16f
 const val CAMERA_ZOOM_DEFAULT = 12f
 const val CAMERA_ZOOM_DIRECTION = 16f
 const val ON_BACK_PRESSED_LIMIT_TO_FINISH = 1

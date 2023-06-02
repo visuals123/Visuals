@@ -64,6 +64,9 @@
     <string name="dialog_positive_button_end_ride">Yes, finish it</string>
     <string name="dialog_negative_button_end_ride">No, keep riding</string>
 
+    <string name="tts_thank_you_for_riding_with_us">Thank you for riding with us! Have a great day!</string>
+    <string name="tts_preparing_your_ride">Preparing your ride. Ride safe!</string>
+
     <string-array name="language_entries">
         <item>English</item>
         <item>Tagalog</item>
