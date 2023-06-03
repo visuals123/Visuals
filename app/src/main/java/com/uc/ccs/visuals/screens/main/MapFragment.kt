@@ -575,7 +575,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 }
             }
 
-            clViewpagerContainer.isVisible = markers.isNotEmpty()
+            clViewpagerContainer.isVisible = withinRadius.isNotEmpty()
             circleIndicator.isVisible = hasMultipleMarker
             circleIndicator.setViewPager(viewPager)
         }
@@ -703,8 +703,11 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             val withinRadius = newMarkers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
 
             val hasMultipleMarker = withinRadius.size > 1
+
+            binding.clViewpagerContainer.isVisible = withinRadius.isNotEmpty()
+
             if (hasMultipleMarker) {
-                speakOut(NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance)))
+//                speakOut(NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance)))
                 LocationTrackingService.NotificationContent(
                     title = "Multiple road signs",
                     description = NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance))
@@ -712,7 +715,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             } else {
                 if(withinRadius.isNotEmpty()) {
                     val item = withinRadius[0]
-                    speakOut("In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}")
+//                    speakOut("In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}")
                     LocationTrackingService.NotificationContent(
                         title = item.title,
                         description= "In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}"
@@ -721,6 +724,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             }
         }
     }
+
+    override fun checkPermission(): Boolean = checkLocationPermissions(LOCATION_PERMISSION_REQUEST_CODE)
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
@@ -798,7 +803,7 @@ enum class NotificationMessage(val template: String) {
     }
 }
 
-const val DISTANCE_RADIUS = 3.0
+const val DISTANCE_RADIUS = 5.0
 const val POLYLINE_WIDTH = 10f
 const val MAP_UPDATE_INTERVAL = 10000L
 const val CAMERA_ZOOM = 16f

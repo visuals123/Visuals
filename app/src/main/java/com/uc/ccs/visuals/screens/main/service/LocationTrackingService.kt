@@ -26,8 +26,10 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import com.uc.ccs.visuals.MapsActivity
 import com.uc.ccs.visuals.R
+import com.uc.ccs.visuals.screens.main.CAMERA_ZOOM
 import com.uc.ccs.visuals.screens.main.DISTANCE_RADIUS
 import com.uc.ccs.visuals.screens.main.MapViewModel
+import com.uc.ccs.visuals.screens.main.models.MarkerInfo
 
 class LocationTrackingService : Service() {
 
@@ -40,6 +42,8 @@ class LocationTrackingService : Service() {
     private val binder = LocalBinder()
     private var isServiceRunning = false
 
+    private val notifiedMarkers: MutableSet<String> = mutableSetOf()
+
     inner class LocalBinder : Binder() {
         fun getService(): LocationTrackingService = this@LocationTrackingService
     }
@@ -51,7 +55,7 @@ class LocationTrackingService : Service() {
         createNotificationChannel()
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
+    override fun onBind(intent: Intent?): IBinder {
         return binder
     }
 
@@ -144,13 +148,19 @@ class LocationTrackingService : Service() {
             override fun onLocationResult(p0: LocationResult) {
                 p0.lastLocation?.let { location ->
                     val latLng = LatLng(location.latitude, location.longitude)
-                    locationUpdateListener?.getMarkerMessageByLocation(latLng)?.let { message ->
-                        val contentText = notification.apply {
-                            setContentTitle(message.title)
-                            setContentText(message.description)
-                        }
+                    val markerMessage = locationUpdateListener?.getMarkerMessageByLocation(latLng)
+                    markerMessage?.let { message ->
+                        val markerKey = message.title
+                        if (!notifiedMarkers.contains(markerKey)) {
+                            notifiedMarkers.add(markerKey)
 
-                        notificationManager.notify(NOTIFICATION_ID, contentText.build())
+                            val contentText = notification.apply {
+                                setContentTitle(message.title)
+                                setContentText(message.description)
+                            }
+
+                            notificationManager.notify(NOTIFICATION_ID, contentText.build())
+                        }
                     }
                 }
             }
@@ -172,6 +182,7 @@ class LocationTrackingService : Service() {
         fun getViewModel(): MapViewModel
         fun speakOut(message: String)
         fun getMarkerMessageByLocation(latLng: LatLng): NotificationContent?
+        fun checkPermission(): Boolean
     }
 
     data class NotificationContent(var title:String, var description: String)
