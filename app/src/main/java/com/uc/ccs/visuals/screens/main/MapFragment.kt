@@ -56,8 +56,10 @@ import com.google.android.libraries.places.widget.listener.PlaceSelectionListene
 import com.google.maps.DirectionsApi
 import com.google.maps.DirectionsApiRequest
 import com.google.maps.GeoApiContext
+import com.google.maps.android.PolyUtil
 import com.google.maps.errors.ZeroResultsException
 import com.google.maps.model.DirectionsResult
+import com.google.maps.model.DirectionsRoute
 import com.google.maps.model.TravelMode
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.data.CsvDataRepository
@@ -160,7 +162,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 }
 
                 override fun onError(status: Status) {
-//                    Toast.makeText(requireContext(), "Error: ${status.statusMessage}", Toast.LENGTH_SHORT).show()
                     autocompleteFragment.setText("")
                 }
             })
@@ -199,6 +200,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                                 try {
                                                     fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                                                         location?.let {
+                                                            Log.d("qweqwe", "onLocationResult: 2")
                                                             val currentLatLng = LatLng(
                                                                 location.latitude,
                                                                 location.longitude
@@ -316,8 +318,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             val result: DirectionsResult = request.await()
 
             if (result.routes.isNotEmpty()) {
-                val route = result.routes[0]
-                val polylineOptions = PolylineOptions()
+                val route: DirectionsRoute = result.routes[0]
+                val polylineOptions: PolylineOptions = PolylineOptions()
                     .addAll(route.overviewPolyline.decodePath().map {
                         LatLng(it.lat, it.lng)
                     })
@@ -325,7 +327,10 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                     .width(POLYLINE_WIDTH)
                     .clickable(false)
 
+                viewModel.setCurrentDirection(route)
+
                 mMap.addPolyline(polylineOptions)
+
             } else {
                 Toast.makeText(requireContext(), "No routes found", Toast.LENGTH_SHORT).show()
             }
@@ -456,8 +461,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 }
 
                 val newMarkers = filterByRadius?.second ?: emptyList()
-                setupViewPager(newMarkers)
-                setMarkers(newMarkers)
+                val withinRadius = newMarkers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
+                setupViewPager(withinRadius)
             }
         }
     }
@@ -505,6 +510,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 locationCallback = object : LocationCallback() {
                     override fun onLocationResult(p0: LocationResult) {
                         p0.lastLocation?.let { location ->
+                            Log.d("qweqwe", "onLocationResult: 1")
                             val currentLatLng = LatLng(location.latitude, location.longitude)
                             viewModel.setCurrentLatLng(currentLatLng)
                             animateCamera(currentLatLng, CAMERA_ZOOM)
@@ -566,14 +572,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             viewPager.adapter = adapter
 
             val hasMultipleMarker = withinRadius.size > 1
-            if (hasMultipleMarker) {
-                speakOut(NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance)))
-            } else {
-                if(withinRadius.isNotEmpty()) {
-                    val item = withinRadius[0]
-                    speakOut("In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}")
-                }
-            }
 
             clViewpagerContainer.isVisible = withinRadius.isNotEmpty()
             circleIndicator.isVisible = hasMultipleMarker
@@ -698,16 +696,22 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 mMap.addMarker(markerOptions)
             }
 
+            val incomingMarkers = getIncomingMarkers()
             val newMarkers = filterByRadius?.second ?: emptyList()
-
             val withinRadius = newMarkers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
+
+            val withCombinedIncomingPath = mutableListOf<MarkerInfo>().apply {
+                addAll(withinRadius)
+                addAll(incomingMarkers)
+            }
+
+            setupViewPager(withinRadius)
+            setMarkers(withCombinedIncomingPath)
 
             val hasMultipleMarker = withinRadius.size > 1
 
-            binding.clViewpagerContainer.isVisible = withinRadius.isNotEmpty()
-
             if (hasMultipleMarker) {
-//                speakOut(NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance)))
+                speakOut(NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance)))
                 LocationTrackingService.NotificationContent(
                     title = "Multiple road signs",
                     description = NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance))
@@ -715,7 +719,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             } else {
                 if(withinRadius.isNotEmpty()) {
                     val item = withinRadius[0]
-//                    speakOut("In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}")
+                    speakOut("In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}")
                     LocationTrackingService.NotificationContent(
                         title = item.title,
                         description= "In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}"
@@ -723,6 +727,35 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 } else null
             }
         }
+    }
+
+    private fun getIncomingMarkers(): MutableList<MarkerInfo> {
+        val outOfRadiusMarkers: MutableList<MarkerInfo> = mutableListOf()
+        with(viewModel){
+            val distanceFromUserThreshold = DISTANCE_RADIUS
+
+            val path = currentDirection.value?.overviewPolyline?.decodePath()?.mapNotNull {
+                LatLng(it.lat, it.lng)
+            } ?: emptyList()
+
+            val allMarkers = allMarkers.value
+            allMarkers?.let { markers ->
+                markers.forEach { marker ->
+                    val markerLatLng = LatLng(marker.position.latitude, marker.position.longitude)
+
+                    val distanceFromPath: Boolean = PolyUtil.isLocationOnPath(markerLatLng, path, false, DISTANCE_FROM_PATH)
+                    val currentUserLatlng = viewModel.currentLatLng.value
+                    currentUserLatlng?.let {location ->
+                        val distanceFromUser: Double = calculateDistance(location, markerLatLng)
+
+                        if (distanceFromPath && distanceFromUser >= distanceFromUserThreshold) {
+                            outOfRadiusMarkers.add(marker)
+                        }
+                    }
+                }
+            }
+        }
+        return outOfRadiusMarkers
     }
 
     override fun checkPermission(): Boolean = checkLocationPermissions(LOCATION_PERMISSION_REQUEST_CODE)
@@ -803,7 +836,8 @@ enum class NotificationMessage(val template: String) {
     }
 }
 
-const val DISTANCE_RADIUS = 5.0
+const val DISTANCE_RADIUS = 3.0
+const val DISTANCE_FROM_PATH = 10.0
 const val POLYLINE_WIDTH = 10f
 const val MAP_UPDATE_INTERVAL = 10000L
 const val CAMERA_ZOOM = 16f

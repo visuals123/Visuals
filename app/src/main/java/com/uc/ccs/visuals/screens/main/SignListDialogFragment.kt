@@ -99,10 +99,19 @@ class SignListDialogFragment : BottomSheetDialogFragment() {
                 }
             }
 
-            groupedMarkers.forEach { (groupTitle, markers) ->
-                markerInfoList.add(groupTitle)
-                markerInfoList.addAll(markers)
+            val sortedMarkers = mutableListOf<Any>()
+            groupedMarkers.entries.sortedBy { entry ->
+                if (entry.key == HeaderTitle.NEAREST_SIGNS.value) {
+                    -1
+                } else {
+                    1
+                }
+            }.forEach { (groupTitle, markers) ->
+                sortedMarkers.add(groupTitle)
+                sortedMarkers.addAll(markers)
             }
+
+            markerInfoList.addAll(sortedMarkers)
 
             notifyDataSetChanged()
         }
