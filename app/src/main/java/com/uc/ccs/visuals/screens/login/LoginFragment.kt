@@ -128,9 +128,9 @@ class LoginFragment : Fragment() {
 
     private fun showTextMinimalAlert(isNotValid: Boolean, text: String) {
         if(text == "Password")
-            binding.passwordEt.error = if(isNotValid) "Please enter your password" else null
+            binding.passwordTIL.error = if(isNotValid) "Please enter your password" else null
         else if(text == "Email")
-            binding.emailEt.error = if(isNotValid) "Please enter your email" else null
+            binding.emailTIL.error = if(isNotValid) "Please enter your email" else null
     }
 
     private fun observeAuthenticationState() {
