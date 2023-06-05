@@ -119,7 +119,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/margin_standard"
                 app:boxStrokeColor="@color/colorPrimary"
-                app:errorIconDrawable="@drawable/no_icon"
                 app:hintTextColor="@color/colorPrimary"
                 app:passwordToggleEnabled="true">
 

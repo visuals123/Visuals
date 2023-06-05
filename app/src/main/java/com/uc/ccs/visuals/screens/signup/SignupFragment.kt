@@ -5,6 +5,7 @@ import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -61,6 +62,7 @@ class SignupFragment : Fragment() {
             .skipInitialValue()
             .map { fname ->
                 fname.isEmpty()
+                !fname.matches("[a-zA-Z]+".toRegex())
             }
         fnameStream.subscribe{
             showFirstNameExistAlert(it)
@@ -71,6 +73,7 @@ class SignupFragment : Fragment() {
             .skipInitialValue()
             .map { lname ->
                 lname.isEmpty()
+                !lname.matches("[a-zA-Z]+".toRegex())
             }
         lnameStream.subscribe{
             showLastNameExistAlert(it)
@@ -196,23 +199,24 @@ class SignupFragment : Fragment() {
     }
 
     private fun showFirstNameExistAlert(isNotValid: Boolean){
-        binding.tietFirstname.error = if (isNotValid) "Please enter your firstname" else null
+        binding.tilFirstname.error = if (isNotValid) "Please enter your firstname" else null
     }
 
     private fun showLastNameExistAlert(isNotValid: Boolean){
-        binding.tietLastname.error = if (isNotValid) "Please enter your lastname" else null
+        binding.tilLastname.error = if (isNotValid) "Please enter your lastname" else null
     }
+
     private fun showTextMinimalAlert(isNotValid: Boolean, text: String) {
         if(text == "Password")
-            binding.passET.error = if(isNotValid) "Password must be more than 8 characters" else null
+            binding.passwordLayout.error = if(isNotValid) "Password must be more than 8 characters" else null
     }
 
     private fun showEmailValidAlert(isNotValid: Boolean) {
-        binding.emailEt.error = if(isNotValid) "Must enter a valid email" else null
+        binding.emailLayout.error = if(isNotValid) "Must enter a valid email" else null
     }
 
     private fun showPasswordConfirmAlert(isNotValid: Boolean) {
-        binding.confirmPassEt.error = if(isNotValid) "Password must be the same!" else null
+        binding.confirmPasswordLayout.error = if(isNotValid) "Password must be the same!" else null
     }
 
 
