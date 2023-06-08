@@ -29,6 +29,12 @@ class MapViewModel: ViewModel() {
     private val _currentDestination = MutableLiveData<LatLng>()
     val currentDestination: LiveData<LatLng> = _currentDestination
 
+    private val _currentDestinationName = MutableLiveData<String>()
+    val currentDestinationName: LiveData<String> = _currentDestinationName
+
+    private val _currentSpeed = MutableLiveData<String>()
+    val currentSpeed: LiveData<String> = _currentSpeed
+
     private val _cacheStartingPositon = MutableLiveData<LatLng>()
     val cachedStartingPositon: LiveData<LatLng> = _cacheStartingPositon
 
@@ -60,7 +66,15 @@ class MapViewModel: ViewModel() {
     }
 
     fun setCurrentDestination(destination: LatLng) {
-        _currentDestination.value = destination
+        _currentDestination.postValue(destination)
+    }
+
+    fun setCurrentDestinationName(destName: String) {
+        _currentDestinationName.postValue(destName)
+    }
+
+    fun setCurrentSpeed(speed: String) {
+        _currentSpeed.postValue(speed)
     }
 
     fun setCurrentDirection(directionsRoute: DirectionsRoute) {

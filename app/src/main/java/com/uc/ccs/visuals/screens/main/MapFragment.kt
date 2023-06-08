@@ -30,6 +30,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Status
@@ -68,6 +69,7 @@ import com.uc.ccs.visuals.factories.AdminDashboardViewModelFactory
 import com.uc.ccs.visuals.screens.admin.AdminDashboardViewModel
 import com.uc.ccs.visuals.screens.admin.LocalDBState
 import com.uc.ccs.visuals.screens.main.adapter.ViewPagerAdapter
+import com.uc.ccs.visuals.screens.main.client.RoadsAPIClient
 import com.uc.ccs.visuals.screens.main.models.MarkerInfo
 import com.uc.ccs.visuals.screens.main.service.LocationTrackingService
 import com.uc.ccs.visuals.utils.extensions.checkLocationPermissions
@@ -76,6 +78,9 @@ import com.uc.ccs.visuals.utils.extensions.requestLocationPermissions
 import com.uc.ccs.visuals.utils.extensions.showConfirmationDialog
 import com.uc.ccs.visuals.utils.extensions.toMarkerInfoList
 import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.Locale
 import kotlin.math.ceil
@@ -88,6 +93,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     private lateinit var autocompleteFragment: AutocompleteSupportFragment
     private lateinit var locationCallback: LocationCallback
     private lateinit var locationRequest: LocationRequest
+    private lateinit var roadsAPIClient: RoadsAPIClient
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
     private var isDirectionsMode = true
 
@@ -139,6 +145,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
         setupAutoComplete()
 
+        roadsAPIClient = RoadsAPIClient(requireContext())
+
         tts = TextToSpeech(requireContext(), this)
 
 //        SharedPreferenceManager.clearCachedRide(requireContext())
@@ -158,6 +166,9 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                     if (place.name?.toString()?.trim()?.isNotBlank() == true) {
                         place.latLng?.let {
                             viewModel.setCurrentDestination(it)
+                            viewModel.setCurrentDestinationName(place.name!!)
+                            SharedPreferenceManager.setCurrentDestinationName(requireContext(), place.name!!)
+
                             animateCamera(it, CAMERA_ZOOM)
                             addMarker(place.name, place.latLng)
                             setupDirectionButton(true, place.latLng)
@@ -201,6 +212,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
                                         Handler(Looper.getMainLooper()).postDelayed({
                                             drawPathToDestination(latLng)
+                                            setupStartRideHeaderUi()
                                             setupStartRide()
                                             setupService()
                                         },2000)
@@ -208,6 +220,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                     }
                                     isDirectionsMode = false
                                     cardDestination.isVisible = false
+                                    cardRide.isVisible = true
                                 },
                                 { }
                             )
@@ -229,9 +242,10 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                     isVisible = false
                                     isDirectionsMode = true
                                     cardDestination.isVisible = true
+                                    cardRide.isVisible = false
+                                    cardSpeedLimit.isVisible = false
 
                                     SharedPreferenceManager.clearCachedRide(requireContext())
-                                    Log.d("qweqwe", "setupDirectionButton: remove ride")
 
                                     speakOut(getString(R.string.tts_thank_you_for_riding_with_us))
                                 },
@@ -242,6 +256,55 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 }
             }
         }
+    }
+
+    private fun setupStartRideHeaderUi() {
+        with(binding) {
+            with(viewModel) {
+                cardRide.isVisible = true
+                cardSpeedLimit.isVisible = true
+
+                tvEndDestination.text =
+                    SharedPreferenceManager.getCurrentDestinationName(requireContext())
+                        ?.let { name ->
+                            name
+                        } ?: currentDestinationName.value
+
+
+                currentLatLng.observe(viewLifecycleOwner) {
+                    currentDestination.value?.let {currentLocation ->
+                        tvDistance.text = formatDistance(calculateDistance(it, currentLocation))
+                    }
+
+                    viewModelScope.launch {
+                        val speedLimit = withContext(Dispatchers.IO) {
+                            roadsAPIClient.getSpeedLimit(it)
+                        }
+
+                        speedLimit?.let {
+                            tvSpeedLimitDisplay.text = "Speed limit: ${formatSpeed(it)}"
+                        } ?: kotlin.run{
+                            tvSpeedLimitDisplay.text = "Speed limit: None"
+                        }
+                    }
+                }
+
+                currentSpeed.observe(viewLifecycleOwner) {
+                    tvSpeed.text = formatSpeed(it.toDouble())
+                }
+
+            }
+        }
+    }
+
+    private fun formatDistance(distanceInMeters: Double): String {
+        val distanceInKilometers = distanceInMeters / 1000
+        return String.format("%.2f km", distanceInKilometers)
+    }
+
+    private fun formatSpeed(speedInMetersPerSecond: Double): String {
+        val speedInMilesPerHour = speedInMetersPerSecond * 2.23694
+        return String.format("%.2f mph", speedInMilesPerHour)
     }
 
     private fun setupStartRide() {
@@ -262,7 +325,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                             if(getCachedStartingPosition(requireContext()) == null) {
                                 setCurrentDestination(requireContext(), viewModel.currentDestination.value!!)
                                 setCachedStartingPosition(requireContext(), currentLatLng)
-                                Log.d("qweqwe", "setupDirectionButton: cached ride")
                             }
                         }
 
@@ -358,7 +420,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 if (SharedPreferenceManager.getCurrentDirection(requireContext()) == null) {
                     viewModel.setCurrentDirection(route)
                     SharedPreferenceManager.cacheCurrentDirection(requireContext(),route)
-                    Log.d("qweqwe", "drawPathToDestination: polyline added")
                 }
 
                 if(::mMap.isInitialized)
@@ -408,7 +469,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     private fun applyCachedDirection() {
         val startingPosition = SharedPreferenceManager.getCachedStartingPosition(requireContext())
         startingPosition?.let {position ->
-            Log.d("qweqwe", "applyCachedDirection: get cache starting position")
             viewModel.setCacheStartingPosition(position)
         }
     }
@@ -420,9 +480,9 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             /**
              * [06/01/2023] Temporary Disabled: Changed Flow
              * */
-            currentLatLng.observe(viewLifecycleOwner) {latLng ->
-                //updateMapMarkers(latLng)
-            }
+//            currentLatLng.observe(viewLifecycleOwner) {latLng ->
+//                //updateMapMarkers(latLng)
+//            }
 
             /**
              * [05/29/2023] Temporary Disabled: Currently using local db to show markers
@@ -485,6 +545,9 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                     isDirectionsMode = false
                     fabDirections.isVisible = true
                     cardDestination.isVisible = false
+                    cardRide.isVisible = true
+
+                    setupStartRideHeaderUi()
 
                     animateFabIconChange(R.drawable.ic_close, true)
 
@@ -579,6 +642,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                         p0.lastLocation?.let { location ->
                             val currentLatLng = LatLng(location.latitude, location.longitude)
                             viewModel.setCurrentLatLng(currentLatLng)
+                            viewModel.setCurrentSpeed(location.speed.toString())
+
                             animateCamera(currentLatLng, CAMERA_ZOOM)
 
                             if(!isDirectionsMode)

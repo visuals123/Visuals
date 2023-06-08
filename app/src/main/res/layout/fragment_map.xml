@@ -39,6 +39,145 @@
 
         </androidx.cardview.widget.CardView>
 
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_ride"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardElevation="5dp"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cl_ride_inner_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:layout_marginBottom="@dimen/margin_standard">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tv_start_destination"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_my_location"
+                    android:drawablePadding="@dimen/padding_standard"
+                    android:drawableTint="@color/colorPrimary"
+                    android:text="Your location"
+                    android:ellipsize="end"
+                    android:textColor="@color/md_black_1000"
+                    android:layout_marginHorizontal="@dimen/margin_medium"
+                    android:textSize="@dimen/text_size_large"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tv_end_destination"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:drawableStart="@drawable/ic_map_mark"
+                    android:drawablePadding="@dimen/padding_standard"
+                    android:drawableTint="@color/md_red_400"
+                    android:text="Your destination"
+                    android:ellipsize="end"
+                    android:textColor="@color/md_black_1000"
+                    android:layout_marginTop="@dimen/margin_standard"
+                    android:layout_marginHorizontal="@dimen/margin_medium"
+                    android:textSize="@dimen/text_size_large"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_start_destination"/>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_small"
+                    app:layout_constraintTop_toBottomOf="@+id/tv_end_destination">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tv_distance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="@dimen/margin_standard"
+                        android:layout_marginTop="@dimen/margin_standard"
+                        android:drawableStart="@drawable/ic_car_direction"
+                        android:drawablePadding="@dimen/padding_standard"
+                        android:drawableTint="@color/md_black_1000"
+                        android:ellipsize="end"
+                        android:text="@string/calibrating_distance"
+                        android:textAlignment="center"
+                        android:textColor="@color/md_black_1000"
+                        android:textSize="@dimen/text_size_medium"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/tv_speed"
+                        app:layout_constraintHorizontal_bias="0.5"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tv_speed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginHorizontal="@dimen/margin_standard"
+                        android:drawableStart="@drawable/ic_speed"
+                        android:drawablePadding="@dimen/padding_standard"
+                        android:drawableTint="@color/md_black_1000"
+                        android:ellipsize="end"
+                        android:text="@string/calibrating_speed"
+                        android:textColor="@color/md_black_1000"
+                        android:textSize="@dimen/text_size_medium"
+                        app:layout_constraintBottom_toBottomOf="@id/tv_distance"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.5"
+                        app:layout_constraintStart_toEndOf="@+id/tv_distance"
+                        app:layout_constraintTop_toTopOf="@id/tv_distance" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card_speed_limit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/card_ride"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:visibility="gone"
+            app:cardCornerRadius="@dimen/corner_radius_standard"
+            android:layout_marginTop="@dimen/margin_small">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/margin_small">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tv_speed_limit_display"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/margin_small"
+                    android:drawableStart="@drawable/ic_speed"
+                    android:drawablePadding="@dimen/padding_standard"
+                    android:drawableTint="@color/md_red_400"
+                    android:ellipsize="end"
+                    android:text="@string/calibrating_speed"
+                    android:textColor="@color/md_black_1000"
+                    android:textSize="@dimen/text_size_medium"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.cardview.widget.CardView>
+
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/map"
             android:name="com.google.android.gms.maps.SupportMapFragment"

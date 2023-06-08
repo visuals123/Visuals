@@ -19,6 +19,7 @@ object SharedPreferenceManager {
     private const val KEY_CURRENT_DIRECTION = "currentDirection"
     private const val KEY_CACHED_STARTING_POSITION_LAT = "cachedStartingPositionLat"
     private const val KEY_CACHED_STARTING_POSITION_LNG = "cachedStartingPositionLng"
+    private const val KEY_CURRENT_DESTINATION_NAME = "currentDestinationName"
     private const val KEY_CURRENT_DESTINATION_LAT = "currentDestinationLat"
     private const val KEY_CURRENT_DESTINATION_LNG = "currentDestinationLng"
 
@@ -126,6 +127,18 @@ object SharedPreferenceManager {
         val editor = sharedPreferences.edit()
         editor.putFloat(KEY_CACHED_STARTING_POSITION_LAT, latLng.latitude.toFloat())
         editor.putFloat(KEY_CACHED_STARTING_POSITION_LNG, latLng.longitude.toFloat())
+        editor.apply()
+    }
+
+    fun getCurrentDestinationName(context: Context): String? {
+        val sharedPreferences = getSharedPreferences(context)
+        return sharedPreferences.getString(KEY_CURRENT_DESTINATION_NAME, null)
+    }
+
+    fun setCurrentDestinationName(context: Context, name: String) {
+        val sharedPreferences = getSharedPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.putString(KEY_CURRENT_DESTINATION_NAME, name)
         editor.apply()
     }
 

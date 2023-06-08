@@ -66,6 +66,8 @@
 
     <string name="tts_thank_you_for_riding_with_us">Thank you for riding with us! Have a great day!</string>
     <string name="tts_preparing_your_ride">Preparing your ride. Ride safe!</string>
+    <string name="calibrating_distance">Calibrating distance</string>
+    <string name="calibrating_speed">Calibrating Speed</string>
 
     <string-array name="language_entries">
         <item>English</item>
