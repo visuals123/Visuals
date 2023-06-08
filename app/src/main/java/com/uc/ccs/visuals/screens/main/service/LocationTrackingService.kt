@@ -127,6 +127,7 @@ class LocationTrackingService : Service() {
 
     private fun startForegroundService() {
         val notificationIntent = Intent(this, MapsActivity::class.java)
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,

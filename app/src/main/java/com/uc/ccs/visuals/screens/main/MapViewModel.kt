@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.model.DirectionsRoute
 import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
 import com.uc.ccs.visuals.screens.main.models.MarkerInfo
@@ -27,6 +26,11 @@ class MapViewModel: ViewModel() {
     private val _currentDirection = MutableLiveData<DirectionsRoute>()
     val currentDirection: LiveData<DirectionsRoute> = _currentDirection
 
+    private val _currentDestination = MutableLiveData<LatLng>()
+    val currentDestination: LiveData<LatLng> = _currentDestination
+
+    private val _cacheStartingPositon = MutableLiveData<LatLng>()
+    val cachedStartingPositon: LiveData<LatLng> = _cacheStartingPositon
 
     private val _csvDataFromFirestore = MutableLiveData<List<CsvData>>()
     val csvDataFromFirestore: LiveData<List<CsvData>> get() = _csvDataFromFirestore
@@ -49,6 +53,14 @@ class MapViewModel: ViewModel() {
 
     fun setIncomingMarkers(markerOptionsList: List<MarkerInfo>) {
         _incomingMarkers.value = markerOptionsList
+    }
+
+    fun setCacheStartingPosition(position: LatLng) {
+        _cacheStartingPositon.postValue(position)
+    }
+
+    fun setCurrentDestination(destination: LatLng) {
+        _currentDestination.value = destination
     }
 
     fun setCurrentDirection(directionsRoute: DirectionsRoute) {

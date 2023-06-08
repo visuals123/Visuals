@@ -2,6 +2,10 @@ package com.uc.ccs.visuals.utils.sharedpreference
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.google.android.gms.maps.model.LatLng
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.google.maps.model.DirectionsRoute
 import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
 
 object SharedPreferenceManager {
@@ -12,6 +16,11 @@ object SharedPreferenceManager {
     private const val KEY_USER_FIRST_NAME = "userFirstName"
     private const val KEY_USER_LAST_NAME = "userLastName"
     private const val KEY_USER_ROLES = "userRoles"
+    private const val KEY_CURRENT_DIRECTION = "currentDirection"
+    private const val KEY_CACHED_STARTING_POSITION_LAT = "cachedStartingPositionLat"
+    private const val KEY_CACHED_STARTING_POSITION_LNG = "cachedStartingPositionLng"
+    private const val KEY_CURRENT_DESTINATION_LAT = "currentDestinationLat"
+    private const val KEY_CURRENT_DESTINATION_LNG = "currentDestinationLng"
 
     private fun getSharedPreferences(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -75,4 +84,98 @@ object SharedPreferenceManager {
         val sharedPreferences = getSharedPreferences(context)
         return sharedPreferences.getInt(KEY_USER_ROLES, 0)
     }
+
+    fun cacheCurrentDirection(context: Context, directionsRoute: DirectionsRoute?) {
+        val sharedPreferences = getSharedPreferences(context)
+        val editor = sharedPreferences.edit()
+        val json = if (directionsRoute != null) {
+            Gson().toJson(directionsRoute)
+        } else {
+            null
+        }
+        editor.putString(KEY_CURRENT_DIRECTION, json)
+        editor.apply()
+    }
+
+    fun getCurrentDirection(context: Context): DirectionsRoute? {
+        val sharedPreferences = getSharedPreferences(context)
+        val json = sharedPreferences.getString(KEY_CURRENT_DIRECTION, null)
+        val type = object : TypeToken<DirectionsRoute>() {}.type
+        val directionsRoute = if (json != null) {
+            Gson().fromJson<DirectionsRoute>(json, type)
+        } else {
+            null
+        }
+        return directionsRoute
+    }
+
+    fun getCachedStartingPosition(context: Context): LatLng? {
+        val sharedPreferences = getSharedPreferences(context)
+        val lat = sharedPreferences.getFloat(KEY_CACHED_STARTING_POSITION_LAT, 0f)
+        val lng = sharedPreferences.getFloat(KEY_CACHED_STARTING_POSITION_LNG, 0f)
+
+        return if (lat != 0f && lng != 0f) {
+            LatLng(lat.toDouble(), lng.toDouble())
+        } else {
+            null
+        }
+    }
+
+    fun setCachedStartingPosition(context: Context, latLng: LatLng) {
+        val sharedPreferences = getSharedPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.putFloat(KEY_CACHED_STARTING_POSITION_LAT, latLng.latitude.toFloat())
+        editor.putFloat(KEY_CACHED_STARTING_POSITION_LNG, latLng.longitude.toFloat())
+        editor.apply()
+    }
+
+    fun getCurrentDestination(context: Context): LatLng? {
+        val sharedPreferences = getSharedPreferences(context)
+        val lat = sharedPreferences.getFloat(KEY_CURRENT_DESTINATION_LAT, 0f)
+        val lng = sharedPreferences.getFloat(KEY_CURRENT_DESTINATION_LNG, 0f)
+
+        return if (lat != 0f && lng != 0f) {
+            LatLng(lat.toDouble(), lng.toDouble())
+        } else {
+            null
+        }
+    }
+
+    fun setCurrentDestination(context: Context, latLng: LatLng) {
+        val sharedPreferences = getSharedPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.putFloat(KEY_CURRENT_DESTINATION_LAT, latLng.latitude.toFloat())
+        editor.putFloat(KEY_CURRENT_DESTINATION_LNG, latLng.longitude.toFloat())
+        editor.apply()
+    }
+
+    fun clearCurrentDirection(context: Context) {
+        val sharedPreferences = getSharedPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.remove(KEY_CURRENT_DIRECTION)
+        editor.apply()
+    }
+
+    fun clearCachedStartingPosition(context: Context) {
+        val sharedPreferences = getSharedPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.remove(KEY_CACHED_STARTING_POSITION_LAT)
+        editor.remove(KEY_CACHED_STARTING_POSITION_LNG)
+        editor.apply()
+    }
+
+    fun clearCurrentDestination(context: Context) {
+        val sharedPreferences = getSharedPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.remove(KEY_CURRENT_DESTINATION_LAT)
+        editor.remove(KEY_CURRENT_DESTINATION_LNG)
+        editor.apply()
+    }
+
+    fun clearCachedRide(context: Context) {
+        clearCurrentDirection(context)
+        clearCachedStartingPosition(context)
+        clearCurrentDestination(context)
+    }
+
 }

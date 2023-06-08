@@ -75,6 +75,7 @@ import com.uc.ccs.visuals.utils.extensions.hasLocationPermission
 import com.uc.ccs.visuals.utils.extensions.requestLocationPermissions
 import com.uc.ccs.visuals.utils.extensions.showConfirmationDialog
 import com.uc.ccs.visuals.utils.extensions.toMarkerInfoList
+import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
 import java.io.IOException
 import java.util.Locale
 import kotlin.math.ceil
@@ -140,6 +141,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
         tts = TextToSpeech(requireContext(), this)
 
+//        SharedPreferenceManager.clearCachedRide(requireContext())
+
         return binding.root
     }
 
@@ -152,10 +155,13 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 override fun onPlaceSelected(place: Place) {
                     clearMap()
 
-                    if (place.name.toString().trim().isNotBlank()) {
-                        animateCamera(place.latLng, CAMERA_ZOOM)
-                        addMarker(place.name, place.latLng)
-                        setupDirectionButton(true, place.latLng)
+                    if (place.name?.toString()?.trim()?.isNotBlank() == true) {
+                        place.latLng?.let {
+                            viewModel.setCurrentDestination(it)
+                            animateCamera(it, CAMERA_ZOOM)
+                            addMarker(place.name, place.latLng)
+                            setupDirectionButton(true, place.latLng)
+                        }
                     } else {
                         setupDirectionButton(false, null)
                     }
@@ -195,35 +201,13 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
                                         Handler(Looper.getMainLooper()).postDelayed({
                                             drawPathToDestination(latLng)
-
-                                            if (checkLocationPermissions(LOCATION_PERMISSION_REQUEST_CODE)) {
-                                                try {
-                                                    fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-                                                        location?.let {
-                                                            Log.d("qweqwe", "onLocationResult: 2")
-                                                            val currentLatLng = LatLng(
-                                                                location.latitude,
-                                                                location.longitude
-                                                            )
-                                                            animateCamera(
-                                                                currentLatLng,
-                                                                CAMERA_ZOOM
-                                                            )
-                                                            updateMapMarkers(currentLatLng)
-                                                        }
-                                                    }
-                                                } catch (securityException: SecurityException) {
-                                                    Log.e(
-                                                        "setupDirectionButton",
-                                                        "SecurityException: ${securityException.message}"
-                                                    )
-                                                }
-                                            }
+                                            setupStartRide()
                                             setupService()
                                         },2000)
 
                                     }
                                     isDirectionsMode = false
+                                    cardDestination.isVisible = false
                                 },
                                 { }
                             )
@@ -244,6 +228,10 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                     autocompleteFragment.setText(getString(R.string.emptyString))
                                     isVisible = false
                                     isDirectionsMode = true
+                                    cardDestination.isVisible = true
+
+                                    SharedPreferenceManager.clearCachedRide(requireContext())
+                                    Log.d("qweqwe", "setupDirectionButton: remove ride")
 
                                     speakOut(getString(R.string.tts_thank_you_for_riding_with_us))
                                 },
@@ -252,6 +240,40 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private fun setupStartRide() {
+        if (checkLocationPermissions(LOCATION_PERMISSION_REQUEST_CODE)) {
+            try {
+                fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                    location?.let {
+                        val currentLatLng = LatLng(
+                            location.latitude,
+                            location.longitude
+                        )
+                        animateCamera(
+                            currentLatLng,
+                            CAMERA_ZOOM
+                        )
+
+                        SharedPreferenceManager.apply {
+                            if(getCachedStartingPosition(requireContext()) == null) {
+                                setCurrentDestination(requireContext(), viewModel.currentDestination.value!!)
+                                setCachedStartingPosition(requireContext(), currentLatLng)
+                                Log.d("qweqwe", "setupDirectionButton: cached ride")
+                            }
+                        }
+
+                        updateMapMarkers(currentLatLng)
+                    }
+                }
+            } catch (securityException: SecurityException) {
+                Log.e(
+                    "setupDirectionButton",
+                    "SecurityException: ${securityException.message}"
+                )
             }
         }
     }
@@ -294,7 +316,10 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     }
 
     private fun drawPathToDestination(destinationLatLng: LatLng) {
-        val originLatLng = viewModel.currentLatLng.value
+        val originLatLng = SharedPreferenceManager
+            .getCachedStartingPosition(requireContext())?.let {startPosition ->
+                startPosition
+            } ?: viewModel.currentLatLng.value
 
         val geoApiContext = GeoApiContext.Builder()
             .apiKey(getString(R.string.google_map_api_key))
@@ -318,7 +343,10 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             val result: DirectionsResult = request.await()
 
             if (result.routes.isNotEmpty()) {
-                val route: DirectionsRoute = result.routes[0]
+                val route: DirectionsRoute = SharedPreferenceManager
+                    .getCurrentDirection(requireContext())?.let { route ->
+                        route
+                    } ?: result.routes[0]
                 val polylineOptions: PolylineOptions = PolylineOptions()
                     .addAll(route.overviewPolyline.decodePath().map {
                         LatLng(it.lat, it.lng)
@@ -327,9 +355,14 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                     .width(POLYLINE_WIDTH)
                     .clickable(false)
 
-                viewModel.setCurrentDirection(route)
+                if (SharedPreferenceManager.getCurrentDirection(requireContext()) == null) {
+                    viewModel.setCurrentDirection(route)
+                    SharedPreferenceManager.cacheCurrentDirection(requireContext(),route)
+                    Log.d("qweqwe", "drawPathToDestination: polyline added")
+                }
 
-                mMap.addPolyline(polylineOptions)
+                if(::mMap.isInitialized)
+                    mMap.addPolyline(polylineOptions)
 
             } else {
                 Toast.makeText(requireContext(), "No routes found", Toast.LENGTH_SHORT).show()
@@ -369,6 +402,14 @@ class MapFragment : Fragment(), OnMapReadyCallback,
         with(binding) {
             setupObservers()
             setupViews()
+        }
+    }
+
+    private fun applyCachedDirection() {
+        val startingPosition = SharedPreferenceManager.getCachedStartingPosition(requireContext())
+        startingPosition?.let {position ->
+            Log.d("qweqwe", "applyCachedDirection: get cache starting position")
+            viewModel.setCacheStartingPosition(position)
         }
     }
 
@@ -438,6 +479,27 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
             markers.observe(viewLifecycleOwner) { markers ->
             }
+
+            cachedStartingPositon.observe(viewLifecycleOwner) {
+                SharedPreferenceManager.getCurrentDestination(requireContext())?.let {destination ->
+                    isDirectionsMode = false
+                    fabDirections.isVisible = true
+                    cardDestination.isVisible = false
+
+                    animateFabIconChange(R.drawable.ic_close, true)
+
+                    //setup destination first
+                    viewModel.setCurrentDestination(destination)
+                    //second is add a marker
+                    addMarker("", destination)
+                    //third is draw a path
+                    drawPathToDestination(destination)
+                    //forth is setup service
+                    setupService()
+                    //and last is add button functionality
+                    setupDirectionButton(true, destination)
+                }
+            }
         }
     }
 
@@ -494,8 +556,13 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
         if (requireContext().hasLocationPermission()) {
             try {
+
+                applyCachedDirection()
+
                 mMap.isMyLocationEnabled = true
                 mMap.uiSettings.isMyLocationButtonEnabled = false
+
+
 
                 // Inside your initialization/setup code
                 locationRequest = LocationRequest.Builder(
@@ -510,10 +577,12 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 locationCallback = object : LocationCallback() {
                     override fun onLocationResult(p0: LocationResult) {
                         p0.lastLocation?.let { location ->
-                            Log.d("qweqwe", "onLocationResult: 1")
                             val currentLatLng = LatLng(location.latitude, location.longitude)
                             viewModel.setCurrentLatLng(currentLatLng)
                             animateCamera(currentLatLng, CAMERA_ZOOM)
+
+                            if(!isDirectionsMode)
+                                updateMapMarkers(currentLatLng)
                         }
                     }
                 }
@@ -705,7 +774,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 addAll(incomingMarkers)
             }
 
-            setupViewPager(withinRadius)
             setMarkers(withCombinedIncomingPath)
 
             val hasMultipleMarker = withinRadius.size > 1
