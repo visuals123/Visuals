@@ -1,16 +1,23 @@
 package com.uc.ccs.visuals.screens.login
 
 import android.annotation.SuppressLint
+import android.app.Dialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Patterns
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
+import android.widget.Button
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 import com.jakewharton.rxbinding2.widget.RxTextView
 import com.uc.ccs.visuals.R
@@ -118,7 +125,8 @@ class LoginFragment : Fragment() {
             }
 
             tvToSignup.setOnClickListener {
-                findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
+                showBottomDialog()
+                //findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
             }
 
             observeAuthenticationState()
@@ -127,10 +135,27 @@ class LoginFragment : Fragment() {
     }
 
     private fun showTextMinimalAlert(isNotValid: Boolean, text: String) {
-        if(text == "Password")
-            binding.passwordTIL.error = if(isNotValid) "Please enter your password" else null
-        else if(text == "Email")
-            binding.emailTIL.error = if(isNotValid) "Please enter your email" else null
+        if(text == "Email")
+            binding.emailEt.error = if(isNotValid) "Enter your valid email" else null
+    }
+
+    private fun showBottomDialog(){
+        val dialog = Dialog(requireContext())
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.bottomsheet)
+
+        val signup_email = dialog.findViewById<MaterialButton>(R.id.btn_signup_email)
+        signup_email?.setOnClickListener {
+            findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
+            dialog.dismiss()
+        }
+
+        dialog.show()
+        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.attributes?.windowAnimations  = R.style.CustomDialog
+        dialog.window?.setGravity(Gravity.BOTTOM)
+
     }
 
     private fun observeAuthenticationState() {
