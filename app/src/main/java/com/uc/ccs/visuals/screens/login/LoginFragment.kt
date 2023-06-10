@@ -153,7 +153,7 @@ class LoginFragment : Fragment() {
         dialog.show()
         dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        dialog.window?.attributes?.windowAnimations  = R.style.CustomDialog
+        dialog.window?.attributes?.windowAnimations  = R.style.DialogAnimation
         dialog.window?.setGravity(Gravity.BOTTOM)
 
     }
