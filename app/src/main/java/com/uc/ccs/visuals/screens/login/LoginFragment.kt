@@ -1,10 +1,13 @@
 package com.uc.ccs.visuals.screens.login
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Dialog
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.util.Patterns
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -13,17 +16,26 @@ import android.view.ViewGroup
 import android.view.Window
 import android.widget.Button
 import android.widget.Toast
+import android.window.SplashScreen
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.tasks.Task
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import com.jakewharton.rxbinding2.widget.RxTextView
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentLoginBinding
 import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
 import com.uc.ccs.visuals.screens.main.MapViewModel
+import com.uc.ccs.visuals.screens.splashscreen.SplashFragment
 import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
 import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
 import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
@@ -36,6 +48,7 @@ class LoginFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var firebaseAuth: FirebaseAuth
+   // private lateinit var googleSignInClient : GoogleSignInClient
 
     private lateinit var viewModel: LoginViewModel
     private lateinit var firestoreViewModel: FirestoreViewModel
@@ -68,7 +81,46 @@ class LoginFragment : Fragment() {
         firestoreViewModel = ViewModelProvider(requireActivity()).get(FirestoreViewModel::class.java)
         mapViewModel = ViewModelProvider(requireActivity()).get(MapViewModel::class.java)
 
+        mapViewModel.setUpGoogleClient(requireContext())
+
         return binding.root
+    }
+
+    private fun signInGoogle() {
+        mapViewModel.googleSignInHelper.googleSignInClient?.let {
+            launcher.launch(it.signInIntent) }
+    }
+
+    private val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult())
+    { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            handleResults(task)
+        }
+    }
+
+    private fun handleResults(task: Task<GoogleSignInAccount>) {
+        if (task.isSuccessful){
+            val account : GoogleSignInAccount? = task.result
+            if (account != null){
+                updateUI(account)
+            }
+        }else{
+            Toast.makeText(requireContext(), task.exception.toString() , Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun updateUI(account: GoogleSignInAccount) {
+        val credential = GoogleAuthProvider.getCredential(account.idToken , null)
+        firebaseAuth.signInWithCredential(credential).addOnCompleteListener {
+            if (it.isSuccessful){
+                Toast.makeText(requireContext(), account.email , Toast.LENGTH_SHORT).show()
+                findNavController().navigate(R.id.action_loginFragment_to_splashScreenFragment)
+            }else{
+                Toast.makeText(requireContext(), it.exception.toString() , Toast.LENGTH_SHORT).show()
+
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -126,7 +178,6 @@ class LoginFragment : Fragment() {
 
             tvToSignup.setOnClickListener {
                 showBottomDialog()
-                //findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
             }
 
             observeAuthenticationState()
@@ -147,6 +198,19 @@ class LoginFragment : Fragment() {
         val signup_email = dialog.findViewById<MaterialButton>(R.id.btn_signup_email)
         signup_email?.setOnClickListener {
             findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
+            dialog.dismiss()
+        }
+
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+//        googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
+
+
+        val btnSignupGoogle = dialog.findViewById<MaterialButton>(R.id.btn_signup_google)
+        btnSignupGoogle?.setOnClickListener {
+            signInGoogle()
             dialog.dismiss()
         }
 
@@ -184,6 +248,7 @@ class LoginFragment : Fragment() {
             findNavController().navigate(R.id.action_loginFragment_to_splashScreenFragment)
         }
     }
+
 
 }
 

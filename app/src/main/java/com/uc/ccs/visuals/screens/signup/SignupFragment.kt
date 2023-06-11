@@ -62,7 +62,7 @@ class SignupFragment : Fragment() {
             .skipInitialValue()
             .map { fname ->
                 fname.isEmpty()
-                !fname.matches("[a-zA-Z]+".toRegex())
+                !fname.matches("[a-zA-Z\\s]+".toRegex())
             }
         fnameStream.subscribe{
             showFirstNameExistAlert(it)
@@ -73,7 +73,7 @@ class SignupFragment : Fragment() {
             .skipInitialValue()
             .map { lname ->
                 lname.isEmpty()
-                !lname.matches("[a-zA-Z]+".toRegex())
+                !lname.matches("[a-zA-Z\\s]+".toRegex())
             }
         lnameStream.subscribe{
             showLastNameExistAlert(it)
