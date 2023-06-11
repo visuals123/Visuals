@@ -8,7 +8,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:gravity="center">
 
         <TextView
             android:id="@+id/createText"
@@ -20,7 +21,7 @@
             android:fontFamily="@font/sf_bold"
             android:textColor="@color/black"
             android:layout_marginTop="15dp"
-            android:layout_marginStart="18dp"
+            android:layout_marginBottom="5dp"
             android:textSize="25sp" />
 
     </LinearLayout>

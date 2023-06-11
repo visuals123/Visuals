@@ -55,7 +55,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:visibility="gone"
-                style="@style/Widget.AppCompat.ProgressBar" />
+                style="@style/CustomProgressBarStyle" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_firstname"

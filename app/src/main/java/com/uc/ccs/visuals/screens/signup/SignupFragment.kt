@@ -149,7 +149,7 @@ class SignupFragment : Fragment() {
             if (email.isNotEmpty() && pass.isNotEmpty() && confirmPass.isNotEmpty() && firstName.isNotEmpty() && lastName.isNotEmpty()) {
                 if (pass == confirmPass) {
                     loadingIndicator.visibility = View.VISIBLE
-                    enableFields(false)
+                    enableFields(true)
 
                     val user = User(email, firstName, lastName)
                     viewModel.signupUser(user, pass)

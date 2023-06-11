@@ -48,9 +48,11 @@
     <string name="logout">Logout</string>
     <string name="successfully_uploaded">Successfully Uploaded</string>
     <string name="emptyString" />
-    <string name="create_your_visuals_account_n_or_log_in">Create your Visuals account \n or log in</string>
+    <string name="create_your_visuals_account_n_or_log_in">Create your Visuals account or log in</string>
     <string name="sign_up_with_google">Sign up with Google</string>
     <string name="sign_up_with_email">Sign up with email</string>
+    <string name="just_a_sec">Just a sec...</string>
+    <string name="load">load</string>
 
     <string-array name="language_entries">
         <item>English</item>
