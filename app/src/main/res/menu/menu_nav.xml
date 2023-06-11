@@ -3,7 +3,11 @@
 
     <item
         android:id="@+id/menu_import"
-        android:title="Import Signs" />
+        android:title="@string/import_signs" />
+
+    <item
+        android:id="@+id/menu_export"
+        android:title="@string/export" />
 
     <item
         android:id="@+id/menu_logout"

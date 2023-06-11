@@ -2,6 +2,7 @@ package com.uc.ccs.visuals.screens.admin
 
 import android.Manifest
 import android.app.Activity
+import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -12,7 +13,10 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -32,6 +36,7 @@ import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
 import com.uc.ccs.visuals.screens.admin.tabs.users.UsersFragment
 import com.uc.ccs.visuals.screens.main.MapViewModel
 import com.uc.ccs.visuals.screens.settings.CsvData
+import com.uc.ccs.visuals.utils.extensions.toMarkerInfoList
 import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
 import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
 import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
@@ -49,6 +54,11 @@ class AdminDashboardFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var menuHost: MenuHost
+    private lateinit var dialog: Dialog
+
+    val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        viewModel.csvClient.onActivityResult(requireContext(), result)
+    }
 
     private val onSuccess: (List<UserItem>) -> Unit = {
         viewModel.setUsers(it)
@@ -74,8 +84,11 @@ class AdminDashboardFragment : Fragment() {
         firestoreViewModel = ViewModelProvider(requireActivity()).get(FirestoreViewModel::class.java)
 
         with(binding) {
-            toolbar.title = getString(R.string.visuals)
+            tvTitleName.text = getString(R.string.admin_header, SharedPreferenceManager
+                .getCurrentUser(requireContext())?.firstName ?: getString(R.string.admin))
         }
+
+        viewModel.setContext(requireContext())
 
         return binding.root
     }
@@ -96,7 +109,6 @@ class AdminDashboardFragment : Fragment() {
                         true
                     }
                     R.id.menu_import -> {
-                        // Handle CSV import click
                         if (isStoragePermissionGranted()) {
                             openFilePicker()
                         } else {
@@ -104,11 +116,44 @@ class AdminDashboardFragment : Fragment() {
                         }
                         true
                     }
+                    R.id.menu_export -> {
+                        showExportOptionsDialog()
+                        true
+                    }
                     else -> true
                 }
             }
 
         })
+    }
+
+    private fun showExportOptionsDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        viewModel.csvClient.launchBaseDirectoryPicker(launcher)
+        builder.setTitle("Choose an option to export")
+            .setItems(arrayOf("Export Users", "Export Signs")) { dialog, which ->
+                when (which) {
+                    0 -> {
+                        viewModel.restoreSavedUri(requireContext())
+                        viewModel.exportUsersToCSV()
+                    }
+                    1 -> {
+                        viewModel.exportMarkersToCSV()
+                    }
+                }
+            }
+
+        // Show the dialog
+        builder.create().show()
+    }
+
+    private fun showLoadingDialog() {
+        dialog = Dialog(requireContext()).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(R.layout.progress_dialog)
+            setCancelable(false)
+            show()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -136,8 +181,28 @@ class AdminDashboardFragment : Fragment() {
                 totalCount1.text = it.count().toString()
             }
 
-            mapViewModel.markers.observe(viewLifecycleOwner) {
+            mapViewModel.allMarkers.observe(viewLifecycleOwner) {
                 totalCount2.text = it.count().toString()
+            }
+
+            with(viewModel) {
+                csvExportDataState.observe(viewLifecycleOwner) { state ->
+                    when(state) {
+                        CsvExportDataState.onLoad -> {
+                            showLoadingDialog()
+                        }
+
+                        is CsvExportDataState.onFailure -> {
+                            dialog.dismiss()
+                            Toast.makeText(requireContext(), state.e, Toast.LENGTH_SHORT).show()
+                        }
+
+                        CsvExportDataState.onSuccess -> {
+                            dialog.dismiss()
+                            Toast.makeText(requireContext(), getString(R.string.successfully_exported), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
             }
 
             with(firestoreViewModel) {
@@ -159,7 +224,7 @@ class AdminDashboardFragment : Fragment() {
                 viewModel.insertCsvDataToLocalDbState.observe(viewLifecycleOwner) { state ->
                     when (state) {
                         is LocalDBState.Success -> {
-                            Toast.makeText(requireContext(), getString(R.string.successfully_uploaded), Toast.LENGTH_SHORT).show()
+                            mapViewModel.setAllMarkers(state.csvData.toMarkerInfoList())
                         }
 
                         is LocalDBState.Error -> {

@@ -29,7 +29,18 @@
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+                app:layout_constraintEnd_toEndOf="parent">
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tv_title_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorPrimary"
+                    android:layout_marginTop="@dimen/margin_standard"
+                    android:layout_marginStart="@dimen/margin_standard"
+                    android:textSize="@dimen/text_size_xxxlarge"
+                    android:text="@string/visuals"/>
+            </androidx.appcompat.widget.Toolbar>
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardView1"

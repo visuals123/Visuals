@@ -7,6 +7,8 @@
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="login">Login</string>
+    <string name="admin_header">Hello! %s</string>
+    <string name="admin"><font fgcolor='#0D47A1'>Admin</font></string>
     <string name="don_t_have_an_account_sign_up"><font fgcolor='#1565C0'>Don\'t have an account?</font> <b><font fgcolor='#0D47A1'>Sign Up</font></b></string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="visuals">VISUALS</string>
@@ -34,6 +36,7 @@
     <string name="type_your_email">Type your Email</string>
     <string name="retype_your_password">Retype Your Password</string>
     <string name="notifications">Notifications</string>
+    <string name="no_data_available">No data available!</string>
 
     <!-- settings -->
     <string name="language_category">Speech Language</string>
@@ -47,6 +50,7 @@
     <string name="csv_import_summary">Import CSV file</string>
     <string name="logout">Logout</string>
     <string name="successfully_uploaded">Successfully Uploaded</string>
+    <string name="successfully_exported">Successfully Exported</string>
     <string name="emptyString" />
     <string name="account">Account</string>
     <string name="select_a_destination">Select a Destination</string>
@@ -68,6 +72,10 @@
     <string name="tts_preparing_your_ride">Preparing your ride. Ride safe!</string>
     <string name="calibrating_distance">Calibrating distance</string>
     <string name="calibrating_speed">Calibrating Speed</string>
+    <string name="export_all">Export All</string>
+    <string name="import_signs">Import Signs</string>
+    <string name="exporting_data_please_wait">Exporting data, please wait...</string>
+    <string name="export">Export</string>
 
     <string-array name="language_entries">
         <item>English</item>
