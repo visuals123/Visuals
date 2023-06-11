@@ -55,7 +55,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:visibility="gone"
-                style="@style/CustomProgressBarStyle" />
+                style="@style/Widget.AppCompat.ProgressBar" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_firstname"
@@ -173,7 +173,5 @@
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
-
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
