@@ -2,6 +2,7 @@ package com.uc.ccs.visuals
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.maps.GoogleMap
 import com.uc.ccs.visuals.databinding.ActivityMapsBinding
 
@@ -15,6 +16,8 @@ class MapsActivity : AppCompatActivity() {
 
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        MobileAds.initialize(this) {}
 
     }
 }

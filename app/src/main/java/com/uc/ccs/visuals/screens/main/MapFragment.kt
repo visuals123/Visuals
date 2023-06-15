@@ -32,6 +32,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -109,6 +115,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     private var isServiceRegistered = false
     private var serviceIntent: Intent? = null
 
+    private var mInterstitialAd: InterstitialAd? = null
+
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as? LocationTrackingService.LocalBinder
@@ -143,6 +151,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
         binding.bottomNavView.background = null
 
+        setupAd()
         setupAutoComplete()
 
         roadsAPIClient = RoadsAPIClient(requireContext())
@@ -209,12 +218,13 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                     if (latLng != null) {
 
                                         Toast.makeText(requireContext(), getString(R.string.tts_preparing_your_ride), Toast.LENGTH_SHORT).show()
-
+                                        isVisible = false
                                         Handler(Looper.getMainLooper()).postDelayed({
                                             drawPathToDestination(latLng)
                                             setupStartRideHeaderUi()
                                             setupStartRide()
                                             setupService()
+                                            isVisible = true
                                         },2000)
 
                                     }
@@ -248,6 +258,12 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                     SharedPreferenceManager.clearCachedRide(requireContext())
 
                                     speakOut(getString(R.string.tts_thank_you_for_riding_with_us))
+
+                                    if (mInterstitialAd != null) {
+                                        mInterstitialAd?.show(requireActivity())
+                                    } else {
+                                        Log.d("qweqwe", "The interstitial ad wasn't ready yet.")
+                                    }
                                 },
                                 { }
                             )
@@ -463,6 +479,49 @@ class MapFragment : Fragment(), OnMapReadyCallback,
         with(binding) {
             setupObservers()
             setupViews()
+        }
+    }
+
+    private fun loadAd() {
+        var adRequest = AdRequest.Builder().build()
+
+        InterstitialAd.load(requireActivity(),"ca-app-pub-3940256099942544/1033173712", adRequest, object : InterstitialAdLoadCallback() {
+            override fun onAdFailedToLoad(adError: LoadAdError) {
+                Log.d("qweqwe1", adError.toString())
+                mInterstitialAd = null
+            }
+
+            override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                Log.d("qweqwe2", "Ad was loaded")
+                mInterstitialAd = interstitialAd
+            }
+        })
+    }
+
+    private fun setupAd() {
+        loadAd()
+
+        mInterstitialAd?.fullScreenContentCallback = object: FullScreenContentCallback() {
+            override fun onAdClicked() {
+                // Called when a click is recorded for an ad.
+                Log.d("qweqwe", "Ad was clicked.")
+            }
+
+            override fun onAdDismissedFullScreenContent() {
+                // Called when ad is dismissed.
+                Log.d("qweqwe", "Ad dismissed fullscreen content.")
+                mInterstitialAd = null
+            }
+
+            override fun onAdImpression() {
+                // Called when an impression is recorded for an ad.
+                Log.d("qweqwe", "Ad recorded an impression.")
+            }
+
+            override fun onAdShowedFullScreenContent() {
+                // Called when ad is shown.
+                Log.d("qweqwe", "Ad showed fullscreen content.")
+            }
         }
     }
 
