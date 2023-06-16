@@ -8,21 +8,30 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:gravity="center">
 
         <TextView
             android:id="@+id/createText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAlignment="center"
             android:text="@string/create_your_visuals_account_n_or_log_in"
-            android:padding="10dp"
             android:fontFamily="@font/sf_bold"
             android:textColor="@color/black"
-            android:layout_marginTop="15dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginTop="30dp"
             android:textSize="25sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:text="You'll be able to easily sign in to your \naccount from any device"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:layout_marginBottom="5dp"
+            android:textColor="@color/md_grey_800"
+            android:textSize="15sp"/>
 
     </LinearLayout>
 
@@ -36,7 +45,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_signup_google"
             style="@style/Widget.Material3.Button.IconButton.Filled"
-            android:backgroundTint="@color/md_grey_300"
+            android:backgroundTint="#f3f4f6"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:drawableLeft="@drawable/google_icon"
@@ -44,13 +53,13 @@
             android:paddingEnd="50dp"
             android:fontFamily="@font/sf_bold"
             android:text="@string/sign_up_with_google"
-            android:textColor="@color/md_blue_500"
-            android:textSize="20sp" />
+            android:textColor="#0171de"
+            android:textSize="18sp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_signup_email"
             style="@style/Widget.Material3.Button.IconButton.Filled"
-            android:backgroundTint="@color/md_grey_300"
+            android:backgroundTint="#f3f4f6"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:drawableLeft="@drawable/ic_email"
@@ -59,8 +68,8 @@
             android:layout_marginTop="@dimen/margin_standard"
             android:fontFamily="@font/sf_bold"
             android:text="@string/sign_up_with_email"
-            android:textColor="@color/md_blue_500"
-            android:textSize="20sp" />
+            android:textColor="#0171de"
+            android:textSize="18sp" />
 
     </LinearLayout>
 
