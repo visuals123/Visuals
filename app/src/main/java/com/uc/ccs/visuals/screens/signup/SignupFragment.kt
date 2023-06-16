@@ -1,4 +1,5 @@
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.os.Bundle
 import android.os.Handler
 import android.util.Patterns
@@ -6,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -36,6 +38,9 @@ class SignupFragment : Fragment() {
 
     private lateinit var viewModel: SignupViewModel
 
+    //private lateinit var loadingDialog: Dialog
+
+    //private lateinit var loadingIndicator: ProgressBar
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,6 +60,12 @@ class SignupFragment : Fragment() {
         viewModel = ViewModelProvider(requireActivity()).get(SignupViewModel::class.java)
 
         binding.setupViews()
+        /*
+        loadingDialog = Dialog(requireContext())
+        val loadingDialogView = layoutInflater.inflate(R.layout.dialog_loading, null)
+        loadingDialog.setContentView(loadingDialogView)
+        loadingIndicator = loadingDialogView.findViewById(R.id.progress)
+        */
         binding.observeSignupState()
 
     //Firstname Validation
@@ -145,9 +156,15 @@ class SignupFragment : Fragment() {
             val confirmPass = confirmPassEt.text.toString()
             val firstName = tietFirstname.text.toString().trim()
             val lastName = tietLastname.text.toString().trim()
+            /*
+            val loadingDialog: Dialog = Dialog(requireContext())
+            loadingDialog.setContentView(R.layout.dialog_loading)
+            val loadingIndicator: ProgressBar = loadingDialog.findViewById(R.id.progress)
+             */
 
             if (email.isNotEmpty() && pass.isNotEmpty() && confirmPass.isNotEmpty() && firstName.isNotEmpty() && lastName.isNotEmpty()) {
                 if (pass == confirmPass) {
+                    //loadingDialog.show()
                     loadingIndicator.visibility = View.VISIBLE
                     enableFields(true)
 
@@ -180,16 +197,19 @@ class SignupFragment : Fragment() {
         viewModel.signupState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is SignupViewModel.SignupState.Success -> {
+                    //loadingDialog.dismiss()
                     loadingIndicator.visibility = View.GONE
                     Handler().postDelayed({
-                        findNavController().navigate(R.id.action_signupFragment_to_loginFragment)
+                        findNavController().navigate(R.id.action_signupFragment_to_emailVerificationFragment)
                     }, DIALOG_DURATION)
                 }
                 is SignupViewModel.SignupState.Failure -> {
+                    //loadingDialog.dismiss()
                     loadingIndicator.visibility = View.GONE
                     Toast.makeText(requireContext(), state.error.localizedMessage, Toast.LENGTH_SHORT).show()
                 }
                 is SignupViewModel.SignupState.ErrorSavingData -> {
+                    //loadingDialog.dismiss()
                     loadingIndicator.visibility = View.GONE
                     Toast.makeText(requireContext(), "Failed to save user data", Toast.LENGTH_SHORT).show()
                 }

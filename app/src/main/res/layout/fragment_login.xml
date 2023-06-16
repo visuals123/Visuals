@@ -14,23 +14,24 @@
         app:layout_constraintLeft_toLeftOf="parent"/>
 
     <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardElevation="@dimen/card_elevation"
-        app:cardCornerRadius="@dimen/corner_radius_medium"
         android:layout_marginHorizontal="@dimen/margin_standard"
-        app:layout_constraintVertical_bias="0.4"
-        app:layout_constraintTop_toTopOf="parent"
+        app:cardCornerRadius="@dimen/corner_radius_medium"
+        app:cardElevation="@dimen/card_elevation"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.4">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingTop="@dimen/padding_standard"
-            android:paddingBottom="@dimen/padding_large">
+            android:paddingBottom="10dp">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -52,18 +53,18 @@
                     android:layout_height="wrap_content"
                     android:text="@string/app_name"
                     android:textAlignment="center"
-                    android:textStyle="bold"
-                    app:fontFamily="sans-serif-medium"
                     android:textColor="@color/colorPrimary"
                     android:textSize="@dimen/text_size_xxxxlarge"
-                    app:layout_constraintTop_toBottomOf="@id/imageView"/>
+                    android:textStyle="bold"
+                    app:fontFamily="sans-serif-medium"
+                    app:layout_constraintTop_toBottomOf="@id/imageView" />
 
                 <LinearLayout
                     android:id="@+id/linearLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="15dp"
                     android:layout_marginHorizontal="@dimen/margin_standard"
+                    android:layout_marginTop="15dp"
                     android:gravity="center"
                     android:orientation="vertical"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -72,9 +73,9 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/emailTIL"
+                        style="@style/LoginTextInputOuterFieldStyle"
                         android:layout_width="match_parent"
                         android:layout_height="60dp"
-                        style="@style/LoginTextInputOuterFieldStyle"
                         android:layout_margin="@dimen/margin_standard"
                         android:drawablePadding="10dp"
                         android:ems="10"
@@ -86,12 +87,12 @@
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/emailEt"
                             style="@style/LoginTextInputInnerFieldStyle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
                             android:background="@drawable/edittext_background"
                             android:drawableStart="@drawable/ic_person"
                             android:drawablePadding="10dp"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="textEmailAddress"/>
+                            android:inputType="textEmailAddress" />
 
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -123,53 +124,99 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_login"
                         style="@style/Widget.Material3.Button.IconButton.Filled"
-                        android:backgroundTint="@color/md_grey_600"
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
-                        android:layout_marginTop="@dimen/margin_standard"
-                        android:layout_marginBottom="@dimen/margin_medium"
                         android:layout_marginHorizontal="@dimen/margin_medium"
+                        android:layout_marginTop="@dimen/margin_standard"
+                        android:layout_marginBottom="5dp"
+                        android:backgroundTint="@color/md_grey_600"
                         android:text="@string/login"
                         android:textColor="@color/white"
                         android:textSize="16sp" />
 
-                    <androidx.appcompat.widget.AppCompatTextView
-                        android:id="@+id/tv_to_signup"
+                    <TextView
+                        android:id="@+id/forgotPass"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:fontFamily="@font/sf_light"
+                        android:text="Forgot your Password?"
+                        android:textAlignment="center"
+                        android:visibility="visible" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal"
+                        android:visibility="visible">
+
+                        <View
+                            android:layout_width="wrap_content"
+                            android:layout_height="1dp"
+                            android:layout_margin="18dp"
+                            android:layout_weight="1"
+                            android:background="@color/md_blue_grey_500" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/sf_light"
+                            android:text="OR"
+                            android:textColor="@color/md_grey_900"
+                            android:textSize="18sp" />
+
+                        <View
+                            android:layout_width="wrap_content"
+                            android:layout_height="1dp"
+                            android:layout_margin="18dp"
+                            android:layout_weight="1"
+                            android:background="@color/md_blue_grey_500" />
+
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:src="@drawable/ic_google"
+                        android:visibility="gone" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/tv_to_sgnup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/don_t_have_an_account_sign_up"
                         android:textAlignment="center"
                         android:textColor="@color/black"
-                        android:text="@string/don_t_have_an_account_sign_up"/>
+                        android:visibility="gone" />
 
                     <View
                         android:layout_width="200dp"
                         android:layout_height="1dp"
                         android:layout_marginTop="@dimen/margin_standard"
-                        android:visibility="gone"
-                        android:background="@color/md_blue_grey_500"/>
+                        android:background="@color/md_blue_grey_500"
+                        android:visibility="gone" />
 
                     <androidx.appcompat.widget.LinearLayoutCompat
                         android:id="@+id/btn_login_with_google"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_standard"
+                        android:layout_gravity="center"
                         android:layout_marginHorizontal="@dimen/margin_standard"
                         android:gravity="center"
-                        android:visibility="gone"
-                        android:layout_gravity="center"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:visibility="visible">
 
                         <androidx.appcompat.widget.AppCompatImageView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:src="@drawable/common_google_signin_btn_icon_light"/>
+                            android:src="@drawable/common_google_signin_btn_icon_light" />
 
                         <androidx.appcompat.widget.AppCompatTextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/margin_small"
-                            android:textColor="@color/black"
-                            android:text="@string/signin_with_google"/>
+                            android:text="Login with Google"
+                            android:textColor="@color/black" />
 
                     </androidx.appcompat.widget.LinearLayoutCompat>
 
@@ -178,4 +225,16 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tv_to_signup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="@string/don_t_have_an_account_sign_up"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

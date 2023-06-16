@@ -11,14 +11,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
 
-        <ImageView
-            android:id="@+id/backButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:padding="8dp"
-            android:src="@drawable/ic_arrow_back" />
-
     </LinearLayout>
 
     <LinearLayout
@@ -63,73 +55,73 @@
             android:gravity="center"
             android:orientation="horizontal" >
 
-            <EditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/inputCode1"
                 android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_height="50dp"
+                android:fontFamily="@font/sf_bold"
                 android:gravity="center"
                 android:imeOptions="actionNext"
                 android:importantForAutofill="no"
                 android:inputType="number"
                 android:maxLength="1"
                 android:textSize="24sp"
-                android:fontFamily="@font/sf_bold"
                 tools:ignore="LabelFor,SpeakableTextPresentCheck" />
 
-            <EditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/inputCode2"
                 android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_height="50dp"
                 android:layout_marginStart="4dp"
+                android:fontFamily="@font/sf_bold"
                 android:gravity="center"
                 android:imeOptions="actionNext"
                 android:importantForAutofill="no"
                 android:inputType="number"
                 android:maxLength="1"
                 android:textSize="24sp"
-                android:fontFamily="@font/sf_bold"
                 tools:ignore="LabelFor,SpeakableTextPresentCheck" />
 
-            <EditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/inputCode3"
                 android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_height="50dp"
                 android:layout_marginStart="4dp"
+                android:fontFamily="@font/sf_bold"
                 android:gravity="center"
                 android:imeOptions="actionNext"
                 android:importantForAutofill="no"
                 android:inputType="number"
                 android:maxLength="1"
                 android:textSize="24sp"
-                android:fontFamily="@font/sf_bold"
                 tools:ignore="LabelFor,SpeakableTextPresentCheck" />
 
-            <EditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/inputCode4"
                 android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_height="50dp"
                 android:layout_marginStart="4dp"
+                android:fontFamily="@font/sf_bold"
                 android:gravity="center"
                 android:imeOptions="actionNext"
                 android:importantForAutofill="no"
                 android:inputType="number"
                 android:maxLength="1"
                 android:textSize="24sp"
-                android:fontFamily="@font/sf_bold"
                 tools:ignore="LabelFor,SpeakableTextPresentCheck" />
 
-            <EditText
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/inputCode5"
                 android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_height="50dp"
                 android:layout_marginStart="4dp"
+                android:fontFamily="@font/sf_bold"
                 android:gravity="center"
                 android:imeOptions="actionDone"
                 android:importantForAutofill="no"
                 android:inputType="number"
                 android:maxLength="1"
                 android:textSize="24sp"
-                android:fontFamily="@font/sf_bold"
                 tools:ignore="LabelFor,SpeakableTextPresentCheck" />
 
         </LinearLayout>
@@ -143,7 +135,7 @@
             android:layout_marginStart="20dp"
             android:layout_marginEnd="20dp"
             android:fontFamily="@font/sf_bold"
-            android:text="Open inbox"
+            android:text="Submit"
             android:textColor="@color/white"
             android:textSize="20sp" />
 
