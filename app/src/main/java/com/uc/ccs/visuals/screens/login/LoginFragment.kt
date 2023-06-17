@@ -2,7 +2,9 @@ package com.uc.ccs.visuals.screens.login
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.app.Dialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -15,6 +17,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import android.window.SplashScreen
 import androidx.activity.result.contract.ActivityResultContracts
@@ -183,9 +186,40 @@ class LoginFragment : Fragment() {
                 signInGoogle()
             }
 
+            forgotPass.setOnClickListener {
+                val builder = AlertDialog.Builder(requireContext())
+                builder.setTitle("Forgot Password")
+                val view = layoutInflater.inflate(R.layout.dialog_forgot_password,null)
+                val username = view.findViewById<EditText>(R.id.et_username)
+                builder.setView(view)
+                builder.setPositiveButton("Reset", DialogInterface.OnClickListener { _, _ ->
+                    forgotPassword(username)
+                })
+                builder.setNegativeButton("Close", DialogInterface.OnClickListener { _, _ ->  })
+                builder.show()
+            }
+
             observeAuthenticationState()
 
         }
+    }
+
+    private fun forgotPassword(username : EditText){
+        if (username.text.toString().isEmpty()) {
+            return
+        }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(username.text.toString()).matches()) {
+            return
+        }
+
+        firebaseAuth.sendPasswordResetEmail(username.text.toString())
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(requireContext(),"Email sent.",Toast.LENGTH_SHORT).show()
+                }
+            }
+
     }
 
     private fun showTextMinimalAlert(isNotValid: Boolean, text: String) {
