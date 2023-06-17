@@ -53,6 +53,7 @@
     <string name="sign_up_with_email">Sign up with email</string>
     <string name="just_a_sec">Just a sec...</string>
     <string name="load">load</string>
+    <string name="forgot_your_password">Forgot your Password?</string>
 
     <string-array name="language_entries">
         <item>English</item>

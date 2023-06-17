@@ -114,7 +114,6 @@ class LoginFragment : Fragment() {
         val credential = GoogleAuthProvider.getCredential(account.idToken , null)
         firebaseAuth.signInWithCredential(credential).addOnCompleteListener {
             if (it.isSuccessful){
-                Toast.makeText(requireContext(), account.email , Toast.LENGTH_SHORT).show()
                 findNavController().navigate(R.id.action_loginFragment_to_splashScreenFragment)
             }else{
                 Toast.makeText(requireContext(), it.exception.toString() , Toast.LENGTH_SHORT).show()
@@ -180,6 +179,10 @@ class LoginFragment : Fragment() {
                 showBottomDialog()
             }
 
+            btnLoginWithGoogle.setOnClickListener {
+                signInGoogle()
+            }
+
             observeAuthenticationState()
 
         }
@@ -200,12 +203,6 @@ class LoginFragment : Fragment() {
             findNavController().navigate(R.id.action_loginFragment_to_signupFragment)
             dialog.dismiss()
         }
-
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id))
-            .requestEmail()
-            .build()
-//        googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
 
 
         val btnSignupGoogle = dialog.findViewById<MaterialButton>(R.id.btn_signup_google)
