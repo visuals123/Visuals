@@ -67,7 +67,7 @@
     </fragment>
     <fragment
         android:id="@+id/signupFragment"
-        android:name="SignupFragment"
+        android:name="com.uc.ccs.visuals.screens.signup.SignupFragment"
         android:label="fragment_signup"
         tools:layout="@layout/fragment_signup" >
         <action

@@ -1,13 +1,12 @@
+package com.uc.ccs.visuals.screens.signup
+
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.os.Bundle
 import android.os.Handler
 import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -17,10 +16,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.jakewharton.rxbinding2.widget.RxTextView
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSignupBinding
-import com.uc.ccs.visuals.screens.signup.DIALOG_DURATION
-import com.uc.ccs.visuals.screens.signup.SignupViewModel
 import io.reactivex.Observable
-import java.util.regex.Pattern
+
 
 data class User(
     val email: String,
@@ -57,7 +54,7 @@ class SignupFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(requireActivity()).get(SignupViewModel::class.java)
+        viewModel = ViewModelProvider(requireActivity())[SignupViewModel::class.java]
 
         binding.setupViews()
         /*
@@ -133,10 +130,10 @@ class SignupFragment : Fragment() {
             lnameStream,
             emailStream,
             passwordStream,
-            confirmPasswordStream,
-            { fnameInvalid: Boolean, lnameInvalid: Boolean, emailInvalid: Boolean, passwordInvalid: Boolean, confirmPasswordInvalid: Boolean ->
-                !fnameInvalid && !lnameInvalid && !emailInvalid && !passwordInvalid && !confirmPasswordInvalid
-            })
+            confirmPasswordStream
+        ) { fnameInvalid: Boolean, lnameInvalid: Boolean, emailInvalid: Boolean, passwordInvalid: Boolean, confirmPasswordInvalid: Boolean ->
+            !fnameInvalid && !lnameInvalid && !emailInvalid && !passwordInvalid && !confirmPasswordInvalid
+        }
         invalidFieldStream.subscribe{isValid ->
             if (isValid) {
                 binding.btnSignup.isEnabled = true
@@ -212,6 +209,16 @@ class SignupFragment : Fragment() {
                     //loadingDialog.dismiss()
                     loadingIndicator.visibility = View.GONE
                     Toast.makeText(requireContext(), "Failed to save user data", Toast.LENGTH_SHORT).show()
+                }
+                is SignupViewModel.SignupState.ErrorSendingVerification -> {
+                    // Handle the error of sending email verification here
+                    loadingIndicator.visibility = View.GONE
+                    Toast.makeText(requireContext(), "Failed to send email verification", Toast.LENGTH_SHORT).show()
+                }
+                is SignupViewModel.SignupState.EmailVerificationSent -> {
+                    // Handle the case when email verification is sent
+                    loadingIndicator.visibility = View.GONE
+                    Toast.makeText(requireContext(), "Email verification sent", Toast.LENGTH_SHORT).show()
                 }
             }
             enableFields(true)

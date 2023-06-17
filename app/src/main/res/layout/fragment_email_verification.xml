@@ -18,12 +18,12 @@
         android:layout_height="match_parent"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:layout_marginTop="80dp">
+        android:layout_marginTop="50dp">
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="250dp"
-            android:layout_height="250dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="50dp"
             android:src="@drawable/verification" />
@@ -42,9 +42,18 @@
             android:id="@+id/textView4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
             android:fontFamily="@font/sf_regular"
-            android:text="Check your inbox for the verification email sent to 'gmail_account'"
+            android:text="Check your inbox for the verification email sent to "
+            android:textSize="15sp"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/emailTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="25dp"
+            android:fontFamily="@font/sf_regular"
+            android:text="gmail account"
             android:textSize="15sp"
             android:gravity="center" />
         
@@ -127,7 +136,7 @@
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_gmail_inbox"
+            android:id="@+id/btn_submit"
             style="@style/Widget.Material3.Button.IconButton.Filled"
             android:layout_width="match_parent"
             android:layout_height="60dp"
