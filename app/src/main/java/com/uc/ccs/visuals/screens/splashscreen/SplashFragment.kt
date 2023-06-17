@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import com.google.firebase.auth.FirebaseAuth
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.data.CsvDataRepository
 import com.uc.ccs.visuals.databinding.FragmentSplashScreenBinding
@@ -33,6 +34,7 @@ class SplashFragment : Fragment() {
     private val SPLASH_TIME_OUT = 3000L // 3 seconds delay
 
     private lateinit var firestoreViewModel: FirestoreViewModel
+    private lateinit var firebaseAuth: FirebaseAuth
     private lateinit var mapViewModel: MapViewModel
     private lateinit var adminViewModel: AdminDashboardViewModel
 
@@ -99,11 +101,21 @@ class SplashFragment : Fragment() {
                 return@postDelayed
             }
 
-            if (currentUser != null && isFirstLogin) {
+            val verified = FirebaseAuthManager.getCurrentUser()?.isEmailVerified
+
+            if (currentUser != null && isFirstLogin && verified == true)
+            {
                 SharedPreferenceManager.setFirstLogin(requireContext(), false)
                 findNavController().navigate(R.id.action_splashScreenFragment_to_introFragment)
             }
-            else { findNavController().navigate(R.id.action_splashScreenFragment_to_mapFragment)}
+            else if(currentUser != null && verified == true)
+            {
+                findNavController().navigate(R.id.action_splashScreenFragment_to_mapFragment)
+            }
+            else
+            {
+                findNavController().navigate(R.id.action_splashScreenFragment_to_emailVerificationFragment)
+            }
 
         }, SPLASH_TIME_OUT)
     }
