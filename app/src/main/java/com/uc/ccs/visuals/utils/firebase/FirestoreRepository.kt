@@ -142,10 +142,10 @@ class FirestoreRepository {
                         )
                         onSuccess(user)
                     } else {
-                        onSuccess(null) // User data is incomplete
+                        onSuccess(null) // com.uc.ccs.visuals.screens.signup.User data is incomplete
                     }
                 } else {
-                    onSuccess(null) // User not found
+                    onSuccess(null) // com.uc.ccs.visuals.screens.signup.User not found
                 }
             }
             .addOnFailureListener { exception ->

@@ -1,15 +1,18 @@
 package com.uc.ccs.visuals.screens.main
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.model.DirectionsRoute
 import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
 import com.uc.ccs.visuals.screens.main.models.MarkerInfo
 import com.uc.ccs.visuals.screens.settings.CsvData
+import com.uc.ccs.visuals.utils.GoogleSignInHelper
 
-class MapViewModel: ViewModel() {
+class MapViewModel(): ViewModel() {
 
     /**
      * Nearby markers
@@ -49,6 +52,12 @@ class MapViewModel: ViewModel() {
 
     private val _currentLatLng = MutableLiveData<LatLng>()
     val currentLatLng: LiveData<LatLng> get() = _currentLatLng
+
+    var googleSignInHelper = GoogleSignInHelper()
+
+    fun setUpGoogleClient(context: Context) {
+        googleSignInHelper.setupHelper(context)
+    }
 
     private val _startARide = MutableLiveData<Boolean>(false)
     val startARide: LiveData<Boolean> get() = _startARide

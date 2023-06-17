@@ -1,6 +1,5 @@
 package com.uc.ccs.visuals.screens.signup
 
-import User
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -25,6 +24,7 @@ class SignupViewModel : ViewModel() {
         val firebaseFirestore = FirebaseFirestore.getInstance()
 
         val email = user.email
+        sendEmailVerification(email)
 
         firebaseFirestore.collection(COLLECTION_PATH)
             .document(email)
@@ -37,10 +37,30 @@ class SignupViewModel : ViewModel() {
             }
     }
 
+    private fun sendEmailVerification(email: String) {
+        FirebaseAuthManager.sendEmailVerification(email) { isEmailSent ->
+            if (isEmailSent) {
+                _signupState.value = SignupState.EmailVerificationSent
+            } else {
+                _signupState.value = SignupState.ErrorSendingVerification
+            }
+        }
+    }
+
+    // Call this function when email verification is completed by the user
+    /*
+    fun completeEmailVerification() {
+        _signupState.value = SignupState.EmailVerificationCompleted
+    }
+     */
+
+
     sealed class SignupState {
         object Success : SignupState()
         data class Failure(val error: Exception) : SignupState()
         object ErrorSavingData : SignupState()
+        object ErrorSendingVerification : SignupState()
+        object EmailVerificationSent : SignupState()
     }
 
     companion object {
@@ -49,4 +69,4 @@ class SignupViewModel : ViewModel() {
 
 }
 
-const val DIALOG_DURATION = 2000L
+const val DIALOG_DURATION = 500L

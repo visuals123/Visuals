@@ -16,10 +16,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSettingsDialogBinding
+import com.uc.ccs.visuals.screens.main.MapViewModel
 import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
 import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
 import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
@@ -41,6 +43,7 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
 
         _binding = FragmentSettingsDialogBinding.inflate(inflater, container, false)
         firestoreViewModel = ViewModelProvider(requireActivity()).get(FirestoreViewModel::class.java)
+
 
         return binding.root
 
@@ -91,16 +94,36 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
     }
 
      class SettingsFragment(private val firestoreViewModel: FirestoreViewModel) : PreferenceFragmentCompat() {
+         private lateinit var googleSignInClient: GoogleSignInClient
+         private lateinit var mapViewModel: MapViewModel
+         private fun signOutGoogle() {
 
-        override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+         }
+
+         override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+             super.onViewCreated(view, savedInstanceState)
+             mapViewModel = ViewModelProvider(requireActivity()).get(MapViewModel::class.java)
+             mapViewModel.setUpGoogleClient(requireContext())
+         }
+
+         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             setPreferencesFromResource(R.xml.preference, rootKey)
 
             // Listen for preference clicks
             findPreference<Preference>("logout_preference")?.setOnPreferenceClickListener {
                 // Handle logout click
-                SharedPreferenceManager.clearCurrentUser(requireContext())
-                FirebaseAuthManager.signOut()
-                findNavController().navigate(R.id.action_settingsDialogFragment_to_loginFragment)
+                mapViewModel.googleSignInHelper.googleSignInClient?.let {
+                    it.signOut()
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            SharedPreferenceManager.clearCurrentUser(requireContext())
+                            FirebaseAuthManager.signOut()
+                            findNavController().navigate(R.id.action_settingsDialogFragment_to_loginFragment)
+                        } else {
+                            Toast.makeText(requireContext(), task.exception?.localizedMessage.toString(), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
                 true
             }
 

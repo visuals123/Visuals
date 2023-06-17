@@ -1,0 +1,32 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background Circle -->
+    <item android:id="@android:id/background">
+        <shape
+            android:innerRadiusRatio="3"
+            android:shape="ring"
+            android:useLevel="false">
+            <solid android:color="@color/md_blue_400" />
+        </shape>
+    </item>
+
+    <!-- Progress Circle -->
+    <item android:id="@android:id/progress">
+        <rotate
+            android:fromDegrees="270"
+            android:toDegrees="270">
+            <shape
+                android:innerRadiusRatio="3"
+                android:shape="ring"
+                android:thicknessRatio="8"
+                android:useLevel="true">
+                <solid android:color="@color/md_blue_200" />
+            </shape>
+        </rotate>
+    </item>
+
+    <!-- Icon -->
+    <item
+        android:id="@+id/icon"
+        android:drawable="@drawable/ic_location"
+        android:gravity="center" />
+</layer-list>
