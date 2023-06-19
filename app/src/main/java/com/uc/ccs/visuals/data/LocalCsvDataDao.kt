@@ -17,4 +17,13 @@ interface LocalCsvDataDao {
     @Query("SELECT * FROM csv_data")
     suspend fun getAllCsvData(): List<LocalCsvData>
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertHistory(history: LocalHistory)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertHistoryList(historyList: List<LocalHistory>)
+
+    @Query("SELECT * FROM local_history")
+    suspend fun getAllHistory(): List<LocalHistory>
+
 }

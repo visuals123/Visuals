@@ -30,4 +30,16 @@ class CsvDataRepository(context: Context) {
         }
     }
 
+    suspend fun insertHistory(history: LocalHistory) {
+        localCsvDataDao.insertHistory(history)
+    }
+
+    suspend fun insertHistoryList(historyList: List<LocalHistory>) {
+        localCsvDataDao.insertHistoryList(historyList)
+    }
+
+    suspend fun getAllHistory(): List<LocalHistory> {
+        return localCsvDataDao.getAllHistory()
+    }
+
 }
