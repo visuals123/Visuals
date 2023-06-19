@@ -64,7 +64,7 @@ class HistoryDialogFragment : BottomSheetDialogFragment() {
             with(viewmodel) {
                 localAllHistory.observe(viewLifecycleOwner) {
                     list.layoutManager = LinearLayoutManager(context)
-                    list.adapter = HistoryItemAdapter(it) {
+                    list.adapter = HistoryItemAdapter(it.subList(0,9)) {
                         setSelectedHistory(it)
                         setIsFromHistory(true)
                         dismiss()
