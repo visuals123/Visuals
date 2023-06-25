@@ -66,6 +66,17 @@ class MapViewModel(): ViewModel() {
         _markers.value = markerOptionsList
     }
 
+    fun setMarkersByVehicleType(vehicleType: VehicleType) {
+        _markers.value = when(vehicleType) {
+            VehicleType.CAR -> {
+                _allMarkers.value?.filter { it.vehicleType == VehicleType.CAR.value }
+            }
+            VehicleType.MOTORCYCLE -> {
+                _allMarkers.value?.filter { it.vehicleType == VehicleType.MOTORCYCLE.value }
+            }
+        }
+    }
+
     fun setIncomingMarkers(markerOptionsList: List<MarkerInfo>) {
         _incomingMarkers.value = markerOptionsList
     }
@@ -120,6 +131,11 @@ class MapViewModel(): ViewModel() {
 
     }
 
+}
+
+enum class VehicleType(val value: String) {
+    CAR("Regular"),
+    MOTORCYCLE("Motorcycle")
 }
 
 sealed class CsvDataState {

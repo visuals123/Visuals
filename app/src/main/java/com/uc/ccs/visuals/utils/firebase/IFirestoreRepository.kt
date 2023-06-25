@@ -25,4 +25,11 @@ interface IFirestoreRepository {
         onSuccess: (List<TravelHistory>) -> Unit,
         onFailure: (e: Exception) -> Unit
     )
+
+    fun deleteTravelRideHistory(
+        collectionPath: String,
+        documentId: String,
+        onSuccess: () -> Unit,
+        onFailure: (e: Exception) -> Unit
+    )
 }

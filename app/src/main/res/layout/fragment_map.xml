@@ -91,6 +91,7 @@
                     app:layout_constraintTop_toBottomOf="@id/tv_start_destination"/>
 
                 <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/cl_ride_info_container"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_small"
@@ -134,6 +135,56 @@
                         app:layout_constraintHorizontal_bias="0.5"
                         app:layout_constraintStart_toEndOf="@+id/tv_distance"
                         app:layout_constraintTop_toTopOf="@id/tv_distance" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="@dimen/margin_medium"
+                    android:layout_marginTop="@dimen/margin_standard"
+                    app:layout_constraintTop_toBottomOf="@+id/cl_ride_info_container"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                    <RadioGroup
+                        android:id="@+id/transportationRadioGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:weightSum="1"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/carRadioButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight=".5"
+                            android:background="@drawable/custom_radio_button_selector_left"
+                            android:button="@android:color/transparent"
+                            android:checked="true"
+                            android:text="@string/car"
+                            android:textAlignment="center"
+                            android:textColor="@color/white"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                        <RadioButton
+                            android:id="@+id/motorcycleRadioButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight=".5"
+                            android:background="@drawable/custom_radio_button_selector_right"
+                            android:button="@android:color/transparent"
+                            android:checked="true"
+                            android:text="@string/motorcycle"
+                            android:textColor="@color/white"
+                            android:textAlignment="center"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                    </RadioGroup>
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 

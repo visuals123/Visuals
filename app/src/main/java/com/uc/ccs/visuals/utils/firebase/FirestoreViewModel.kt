@@ -63,6 +63,19 @@ class FirestoreViewModel : ViewModel() {
         repository.getTravelRideHistory(TRAVEL_HISTORY_COLLECTION_PATH, onSuccess, onFailure)
     }
 
+    fun deleteTravelRideHistory(
+        documentId: String,
+        onSuccess: () -> Unit,
+        onFailure: (e: Exception) -> Unit
+    ) {
+        repository.deleteTravelRideHistory(
+            TRAVEL_HISTORY_COLLECTION_PATH,
+            documentId,
+            onSuccess,
+            onFailure
+        )
+    }
+
     companion object {
         const val ROAD_SIGN_COLLECTION_PATH = "roadsigns"
         const val USERS_COLLECTION_PATH = "users"

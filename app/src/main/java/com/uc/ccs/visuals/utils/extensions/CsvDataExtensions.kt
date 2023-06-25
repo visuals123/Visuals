@@ -29,6 +29,7 @@ fun List<CsvData>.toMarkerInfoList(): List<MarkerInfo> {
             iconImageUrl = item.iconImageUrl,
             description = item.description,
             isWithinRadius = false,
+            vehicleType = item.vehicleType
         )
     }
 }

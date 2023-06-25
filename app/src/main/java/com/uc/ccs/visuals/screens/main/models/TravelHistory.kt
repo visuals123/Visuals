@@ -1,6 +1,7 @@
 package com.uc.ccs.visuals.screens.main.models
 
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.Timestamp
 import com.uc.ccs.visuals.data.LocalHistory
 
 data class TravelHistory(
@@ -9,7 +10,8 @@ data class TravelHistory(
     val startDestinationName: String,
     val endDestinationName: String,
     val startDestinationLatLng: LatLng,
-    val endDestinationLatLng: LatLng
+    val endDestinationLatLng: LatLng,
+    val timestamp: String
 ) {
     fun toLocalHistory(): LocalHistory {
         val startLatLng = "${startDestinationLatLng.latitude},${startDestinationLatLng.longitude}"
@@ -21,7 +23,8 @@ data class TravelHistory(
             startDestinationName = this.startDestinationName,
             endDestinationName = this.endDestinationName,
             startDestinationLatLng = startLatLng,
-            endDestinationLatLng = endLatLng
+            endDestinationLatLng = endLatLng,
+            timestamp = timestamp
         )
     }
 }
