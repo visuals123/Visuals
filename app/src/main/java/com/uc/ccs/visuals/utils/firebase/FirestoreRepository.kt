@@ -1,13 +1,15 @@
 package com.uc.ccs.visuals.utils.firebase
 
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.FirebaseFirestore
 import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
+import com.uc.ccs.visuals.screens.main.models.TravelHistory
 import com.uc.ccs.visuals.screens.settings.CsvData
 
-class FirestoreRepository {
+class FirestoreRepository: IFirestoreRepository {
     private val firestore = FirebaseFirestore.getInstance()
 
-    fun saveMultipleData(collectionPath: String, data: List<CsvData>, onSuccess: () -> Unit, onFailure: (e: Exception) -> Unit) {
+    override fun saveMultipleData(collectionPath: String, data: List<CsvData>, onSuccess: () -> Unit, onFailure: (e: Exception) -> Unit) {
         val batch = firestore.batch()
 
         data.map { csvData ->
@@ -45,7 +47,7 @@ class FirestoreRepository {
             }
     }
 
-    fun getCsvData(collectionPath: String, onSuccess: (List<CsvData>) -> Unit, onFailure: (e: Exception) -> Unit) {
+    override fun getCsvData(collectionPath: String, onSuccess: (List<CsvData>) -> Unit, onFailure: (e: Exception) -> Unit) {
         firestore.collection(collectionPath)
             .get()
             .addOnSuccessListener { querySnapshot ->
@@ -86,7 +88,7 @@ class FirestoreRepository {
             }
     }
 
-    fun getUsers(collectionPath: String, onSuccess: (List<UserItem>) -> Unit, onFailure: (e: Exception) -> Unit) {
+    override fun getUsers(collectionPath: String, onSuccess: (List<UserItem>) -> Unit, onFailure: (e: Exception) -> Unit) {
         firestore.collection(collectionPath)
             .get()
             .addOnSuccessListener { querySnapshot ->
@@ -117,7 +119,7 @@ class FirestoreRepository {
             }
     }
 
-    fun getUserByEmail(collectionPath: String, email: String, onSuccess: (UserItem?) -> Unit, onFailure: (e: Exception) -> Unit) {
+    override fun getUserByEmail(collectionPath: String, email: String, onSuccess: (UserItem?) -> Unit, onFailure: (e: Exception) -> Unit) {
         firestore.collection(collectionPath)
             .whereEqualTo("email", email)
             .get()
@@ -147,6 +149,95 @@ class FirestoreRepository {
                 } else {
                     onSuccess(null) // com.uc.ccs.visuals.screens.signup.User not found
                 }
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
+    }
+
+    override fun saveTravelRideHistory(
+        collectionPath: String,
+        userEmail: String,
+        startDestinationName: String,
+        endDestinationName: String,
+        startDestinationLatLng: LatLng,
+        endDestinationLatLng: LatLng,
+        onSuccess: () -> Unit,
+        onFailure: (e: Exception) -> Unit
+    ) {
+        val rideHistoryData = hashMapOf(
+            "email" to userEmail,
+            "startDestinationName" to startDestinationName,
+            "endDestinationName" to endDestinationName,
+            "startDestinationLatLng" to startDestinationLatLng,
+            "endDestinationLatLng" to endDestinationLatLng
+        )
+
+        firestore.collection(collectionPath)
+            .add(rideHistoryData)
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
+
+    override fun getTravelRideHistory(
+        collectionPath: String,
+        onSuccess: (List<TravelHistory>) -> Unit,
+        onFailure: (e: Exception) -> Unit
+    ) {
+        firestore.collection(collectionPath)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val rideHistoryList = mutableListOf<TravelHistory>()
+
+                for (document in querySnapshot) {
+                    val rideHistoryData = document.data
+                    val id = document.id
+                    val email = rideHistoryData["email"] as? String
+                    val startDestinationName = rideHistoryData["startDestinationName"] as? String
+                    val endDestinationName = rideHistoryData["endDestinationName"] as? String
+                    val startLatLngMap = rideHistoryData["startDestinationLatLng"] as? Map<String, Double>
+                    val endLatLngMap = rideHistoryData["endDestinationLatLng"] as? Map<String, Double>
+
+                    val startDestinationLatLng: LatLng? = startLatLngMap?.let { latLngMap ->
+                        val latitude = latLngMap["latitude"]
+                        val longitude = latLngMap["longitude"]
+                        if (latitude != null && longitude != null) {
+                            LatLng(latitude, longitude)
+                        } else {
+                            null
+                        }
+                    }
+
+                    val endDestinationLatLng: LatLng? = endLatLngMap?.let { latLngMap ->
+                        val latitude = latLngMap["latitude"]
+                        val longitude = latLngMap["longitude"]
+                        if (latitude != null && longitude != null) {
+                            LatLng(latitude, longitude)
+                        } else {
+                            null
+                        }
+                    }
+
+                    if (email != null && startDestinationName != null && endDestinationName != null &&
+                        startDestinationLatLng != null && endDestinationLatLng != null
+                    ) {
+                        val rideHistory = TravelHistory(
+                            id = id,
+                            email = email,
+                            startDestinationName = startDestinationName,
+                            endDestinationName = endDestinationName,
+                            startDestinationLatLng = startDestinationLatLng,
+                            endDestinationLatLng = endDestinationLatLng
+                        )
+                        rideHistoryList.add(rideHistory)
+                    }
+                }
+
+                onSuccess(rideHistoryList)
             }
             .addOnFailureListener { exception ->
                 onFailure(exception)

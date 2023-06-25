@@ -16,6 +16,7 @@ object SharedPreferenceManager {
     private const val KEY_USER_FIRST_NAME = "userFirstName"
     private const val KEY_USER_LAST_NAME = "userLastName"
     private const val KEY_USER_ROLES = "userRoles"
+
     private const val KEY_CURRENT_DIRECTION = "currentDirection"
     private const val KEY_CACHED_STARTING_POSITION_LAT = "cachedStartingPositionLat"
     private const val KEY_CACHED_STARTING_POSITION_LNG = "cachedStartingPositionLng"
@@ -162,14 +163,20 @@ object SharedPreferenceManager {
         editor.apply()
     }
 
-    fun clearCurrentDirection(context: Context) {
+    fun setRideStartLocationAndDestination(context: Context, destinationName: String,starting: LatLng, destination: LatLng){
+        setCurrentDestinationName(context, destinationName)
+        setCurrentDestination(context,destination)
+        setCachedStartingPosition(context, starting)
+    }
+
+    private fun clearCurrentDirection(context: Context) {
         val sharedPreferences = getSharedPreferences(context)
         val editor = sharedPreferences.edit()
         editor.remove(KEY_CURRENT_DIRECTION)
         editor.apply()
     }
 
-    fun clearCachedStartingPosition(context: Context) {
+    private fun clearCachedStartingPosition(context: Context) {
         val sharedPreferences = getSharedPreferences(context)
         val editor = sharedPreferences.edit()
         editor.remove(KEY_CACHED_STARTING_POSITION_LAT)
@@ -177,7 +184,7 @@ object SharedPreferenceManager {
         editor.apply()
     }
 
-    fun clearCurrentDestination(context: Context) {
+    private fun clearCurrentDestination(context: Context) {
         val sharedPreferences = getSharedPreferences(context)
         val editor = sharedPreferences.edit()
         editor.remove(KEY_CURRENT_DESTINATION_LAT)
@@ -185,10 +192,18 @@ object SharedPreferenceManager {
         editor.apply()
     }
 
+    private fun clearCurrentDestinationName(context: Context) {
+        val sharedPreferences = getSharedPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.remove(KEY_CURRENT_DESTINATION_NAME)
+        editor.apply()
+    }
+
     fun clearCachedRide(context: Context) {
         clearCurrentDirection(context)
         clearCachedStartingPosition(context)
         clearCurrentDestination(context)
+        clearCurrentDestinationName(context)
     }
 
 }

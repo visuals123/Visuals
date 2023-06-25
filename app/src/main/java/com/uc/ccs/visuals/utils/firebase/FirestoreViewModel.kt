@@ -3,7 +3,9 @@ package com.uc.ccs.visuals.utils.firebase
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.google.android.gms.maps.model.LatLng
 import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
+import com.uc.ccs.visuals.screens.main.models.TravelHistory
 import com.uc.ccs.visuals.screens.settings.CsvData
 
 class FirestoreViewModel : ViewModel() {
@@ -33,9 +35,38 @@ class FirestoreViewModel : ViewModel() {
         repository.getUserByEmail(USERS_COLLECTION_PATH, email, onSuccess, onFailure)
     }
 
+    fun saveTravelRideHistory(
+        userEmail: String,
+        startDestinationName: String,
+        endDestinationName: String,
+        startDestinationLatLng: LatLng,
+        endDestinationLatLng: LatLng,
+        onSuccess: () -> Unit,
+        onFailure: (e: Exception) -> Unit
+    ) {
+        repository.saveTravelRideHistory(
+            TRAVEL_HISTORY_COLLECTION_PATH,
+            userEmail,
+            startDestinationName,
+            endDestinationName,
+            startDestinationLatLng,
+            endDestinationLatLng,
+            onSuccess,
+            onFailure
+        )
+    }
+
+    fun getTravelRideHistory(
+        onSuccess: (List<TravelHistory>) -> Unit,
+        onFailure: (e: Exception) -> Unit
+    ) {
+        repository.getTravelRideHistory(TRAVEL_HISTORY_COLLECTION_PATH, onSuccess, onFailure)
+    }
+
     companion object {
         const val ROAD_SIGN_COLLECTION_PATH = "roadsigns"
         const val USERS_COLLECTION_PATH = "users"
+        const val TRAVEL_HISTORY_COLLECTION_PATH = "history"
     }
 
     sealed class OperationState {

@@ -10,6 +10,8 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
@@ -30,6 +32,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.ads.AdError
@@ -56,8 +59,14 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import com.google.android.libraries.places.api.net.FetchPlaceResponse
+import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
+import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.google.maps.DirectionsApi
@@ -68,14 +77,17 @@ import com.google.maps.errors.ZeroResultsException
 import com.google.maps.model.DirectionsResult
 import com.google.maps.model.DirectionsRoute
 import com.google.maps.model.TravelMode
+import com.uc.ccs.visuals.LogTag
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.data.CsvDataRepository
+import com.uc.ccs.visuals.data.LocalHistory
 import com.uc.ccs.visuals.databinding.FragmentMapBinding
 import com.uc.ccs.visuals.factories.AdminDashboardViewModelFactory
 import com.uc.ccs.visuals.screens.admin.AdminDashboardViewModel
 import com.uc.ccs.visuals.screens.admin.LocalDBState
 import com.uc.ccs.visuals.screens.main.adapter.ViewPagerAdapter
 import com.uc.ccs.visuals.screens.main.client.RoadsAPIClient
+import com.uc.ccs.visuals.screens.main.history.HistoryViewModel
 import com.uc.ccs.visuals.screens.main.models.MarkerInfo
 import com.uc.ccs.visuals.screens.main.service.LocationTrackingService
 import com.uc.ccs.visuals.utils.extensions.checkLocationPermissions
@@ -83,16 +95,19 @@ import com.uc.ccs.visuals.utils.extensions.hasLocationPermission
 import com.uc.ccs.visuals.utils.extensions.requestLocationPermissions
 import com.uc.ccs.visuals.utils.extensions.showConfirmationDialog
 import com.uc.ccs.visuals.utils.extensions.toMarkerInfoList
+import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
 import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.Locale
 import kotlin.math.ceil
 
 class MapFragment : Fragment(), OnMapReadyCallback,
-    TextToSpeech.OnInitListener, LocationTrackingService.LocationUpdateListener {
+    TextToSpeech.OnInitListener, LocationTrackingService.LocationUpdateListener, LogTag {
 
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -106,8 +121,10 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     private lateinit var binding: FragmentMapBinding
 
     private lateinit var viewModel: MapViewModel
+    private lateinit var firestoreViewModel: FirestoreViewModel
     private lateinit var adminViewModel: AdminDashboardViewModel
     private lateinit var mapFragment: SupportMapFragment
+    private lateinit var historyViewModel: HistoryViewModel
 
     private var tts: TextToSpeech? = null
 
@@ -116,6 +133,13 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     private var serviceIntent: Intent? = null
 
     private var mInterstitialAd: InterstitialAd? = null
+
+    private val onSuccessSaveRide : () -> Unit = {
+    }
+
+    private val onFailureSaveRide : (Exception) -> Unit = {
+        Toast.makeText(requireContext(), it.localizedMessage, Toast.LENGTH_SHORT).show()
+    }
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -142,6 +166,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
         adminViewModel = ViewModelProvider(requireActivity(),viewModelFactory).get(AdminDashboardViewModel::class.java)
         viewModel = ViewModelProvider(requireActivity()).get(MapViewModel::class.java)
+        firestoreViewModel = ViewModelProvider(requireActivity()).get(FirestoreViewModel::class.java)
+        historyViewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(HistoryViewModel::class.java)
 
         binding = FragmentMapBinding.inflate(inflater, container, false)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
@@ -220,7 +246,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                         Toast.makeText(requireContext(), getString(R.string.tts_preparing_your_ride), Toast.LENGTH_SHORT).show()
                                         isVisible = false
                                         Handler(Looper.getMainLooper()).postDelayed({
-                                            drawPathToDestination(latLng)
+                                            drawPathToDestination(destinationLatLng = latLng)
                                             setupStartRideHeaderUi()
                                             setupStartRide()
                                             setupService()
@@ -255,14 +281,39 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                     cardRide.isVisible = false
                                     cardSpeedLimit.isVisible = false
 
-                                    SharedPreferenceManager.clearCachedRide(requireContext())
-
                                     speakOut(getString(R.string.tts_thank_you_for_riding_with_us))
+
+                                    val currentLocation = viewModel.currentLatLng.value
+                                    currentLocation?.let {
+                                        val cacheUser = SharedPreferenceManager.getCurrentUser(requireContext())
+                                        val cacheStartDestinationName = SharedPreferenceManager.getCurrentDestinationName(requireContext())
+                                        val cacheStartDestinationLatlng = currentLatLng.value
+                                        val cacheEndDestinationLatlng = currentDestination.value
+                                        if (cacheStartDestinationName != null
+                                            && cacheStartDestinationLatlng != null && cacheEndDestinationLatlng != null
+                                            && historyViewModel.isFromHistory.value == false) {
+                                            getPlaceNameFromLatLng(requireContext(), it, {placeName ->
+                                                firestoreViewModel.saveTravelRideHistory(
+                                                    userEmail = cacheUser?.email.toString(),
+                                                    startDestinationName = placeName,
+                                                    endDestinationName = cacheStartDestinationName,
+                                                    startDestinationLatLng = cacheStartDestinationLatlng,
+                                                    endDestinationLatLng = cacheEndDestinationLatlng,
+                                                    onSuccess = onSuccessSaveRide,
+                                                    onFailure = onFailureSaveRide
+                                                )
+                                                SharedPreferenceManager.clearCachedRide(requireContext())
+                                            },{
+                                                Log.d(tagName(), "setupDirectionButton: ${it.localizedMessage}")
+                                            })
+                                        }
+                                        historyViewModel.setIsFromHistory(false)
+                                    }
 
                                     if (mInterstitialAd != null) {
                                         mInterstitialAd?.show(requireActivity())
                                     } else {
-                                        Log.d("qweqwe", "The interstitial ad wasn't ready yet.")
+                                        Log.d(tagName(), "The interstitial ad wasn't ready yet.")
                                     }
                                 },
                                 { }
@@ -270,6 +321,43 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private fun getPlaceNameFromLatLng(
+        context: Context,
+        latLng: LatLng,
+        onSuccess: (String) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val geocoder = Geocoder(context, Locale.getDefault())
+
+        lifecycleScope.launch(Dispatchers.Main) {
+            try {
+                val addresses = withContext(Dispatchers.IO) {
+                    geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
+                }
+
+                if (addresses != null) {
+                    val address = addresses.first()
+                    val featureName = address.featureName
+                    val locality = address.locality
+                    val adminArea = address.adminArea
+
+                    val placeName = address?.let {
+                        if (!locality.isNullOrBlank() && !adminArea.isNullOrBlank()) {
+                            "$locality, $adminArea"
+                        } else {
+                            featureName ?: locality ?: adminArea ?: ""
+                        }
+                    }
+                    onSuccess.invoke(placeName.toString())
+                } else {
+                    onFailure.invoke(IOException("No address found"))
+                }
+            } catch (e: Exception) {
+                onFailure.invoke(e)
             }
         }
     }
@@ -393,11 +481,14 @@ class MapFragment : Fragment(), OnMapReadyCallback,
         }
     }
 
-    private fun drawPathToDestination(destinationLatLng: LatLng) {
-        val originLatLng = SharedPreferenceManager
-            .getCachedStartingPosition(requireContext())?.let {startPosition ->
-                startPosition
-            } ?: viewModel.currentLatLng.value
+    private fun drawPathToDestination(originLocation: LatLng? = null, destinationLatLng: LatLng) {
+        val originLatLng =
+            originLocation?.let { loc ->
+                loc
+            } ?: SharedPreferenceManager
+                .getCachedStartingPosition(requireContext())?.let {startPosition ->
+                    startPosition
+                } ?: viewModel.currentLatLng.value
 
         val geoApiContext = GeoApiContext.Builder()
             .apiKey(getString(R.string.google_map_api_key))
@@ -615,13 +706,55 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                     //second is add a marker
                     addMarker("", destination)
                     //third is draw a path
-                    drawPathToDestination(destination)
+                    drawPathToDestination(destinationLatLng = destination)
                     //forth is setup service
                     setupService()
                     //and last is add button functionality
                     setupDirectionButton(true, destination)
                 }
             }
+
+            historyViewModel.selectedHistory.observe(viewLifecycleOwner) {
+                val startLocation = it.startDestinationLatLng.split(",")
+                val endLocation = it.endDestinationLatLng.split(",")
+                setupRide(it,
+                    LatLng(startLocation[0].toDouble(), startLocation[1].toDouble()),
+                    LatLng(endLocation[0].toDouble(), endLocation[1].toDouble()),
+                )
+            }
+        }
+    }
+
+    private fun setupRide(localHistory: LocalHistory, currentLocation: LatLng, destination: LatLng) {
+        with(binding) {
+            isDirectionsMode = false
+            fabDirections.isVisible = true
+            cardDestination.isVisible = false
+            cardRide.isVisible = true
+
+            SharedPreferenceManager.clearCachedRide(requireContext())
+            SharedPreferenceManager.setRideStartLocationAndDestination(
+                requireContext(),
+                localHistory.endDestinationName,
+                currentLocation,
+                destination
+            )
+            viewModel.setCurrentDestinationName(localHistory.endDestinationName)
+            //setup destination first
+            viewModel.setCurrentDestination(destination)
+
+            setupStartRideHeaderUi()
+
+            animateFabIconChange(R.drawable.ic_close, true)
+
+            //second is add a marker
+            addMarker("", destination)
+            //third is draw a path
+            drawPathToDestination(currentLocation,destination)
+            //forth is setup service
+            setupService()
+            //and last is add button functionality
+            setupDirectionButton(true, destination)
         }
     }
 
@@ -659,6 +792,10 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 }
                 R.id.menu_notif -> {
                     findNavController().navigate(R.id.action_mapFragment_to_primaryChangeAccountDialogFragment)
+                    true
+                }
+                R.id.menu_history -> {
+                    findNavController().navigate(R.id.action_mapFragment_to_historyDialogFragment)
                     true
                 }
                 else -> {
@@ -738,7 +875,9 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     }
 
     private fun stopLocationUpdates() {
-        fusedLocationClient.removeLocationUpdates(locationCallback)
+        if (::locationCallback.isInitialized) {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
     }
 
     private fun enableMyLocation() {
@@ -995,6 +1134,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
         updateMapMarkers(latlng)
     }
 
+    override fun tagName(): String = "MapFragment"
+
 }
 
 enum class TtsLanguage(val locale: Locale) {
@@ -1026,6 +1167,9 @@ enum class NotificationMessage(val template: String) {
             return randomMessage.template.replace("distance", distance)
         }
     }
+
+
+
 }
 
 const val DISTANCE_RADIUS = 3.0
