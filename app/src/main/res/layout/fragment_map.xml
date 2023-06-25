@@ -178,9 +178,8 @@
                             android:layout_weight=".5"
                             android:background="@drawable/custom_radio_button_selector_right"
                             android:button="@android:color/transparent"
-                            android:checked="true"
                             android:text="@string/motorcycle"
-                            android:textColor="@color/white"
+                            android:textColor="@color/colorPrimary"
                             android:textAlignment="center"
                             android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 

@@ -17,6 +17,9 @@ class MapViewModel: ViewModel() {
     private val _markers = MutableLiveData<List<MarkerInfo>>()
     val markers: LiveData<List<MarkerInfo>> = _markers
 
+    private val _nearbyMarkers = MutableLiveData<List<MarkerInfo>>()
+    val nearbyMarkers: LiveData<List<MarkerInfo>> = _nearbyMarkers
+
     private val _incomingMarkers = MutableLiveData<List<MarkerInfo>>()
     val incomingMarkers: LiveData<List<MarkerInfo>> = _incomingMarkers
 
@@ -57,13 +60,17 @@ class MapViewModel: ViewModel() {
         _markers.value = markerOptionsList
     }
 
+    fun setNearbyMarkers(markers: List<MarkerInfo>) {
+        _nearbyMarkers.value = markers
+    }
+
     fun setMarkersByVehicleType(vehicleType: VehicleType) {
         _markers.value = when(vehicleType) {
             VehicleType.CAR -> {
-                _allMarkers.value?.filter { it.vehicleType == VehicleType.CAR.value }
+                _nearbyMarkers.value?.filter { it.vehicleType == VehicleType.CAR.value }
             }
             VehicleType.MOTORCYCLE -> {
-                _allMarkers.value?.filter { it.vehicleType == VehicleType.MOTORCYCLE.value }
+                _nearbyMarkers.value
             }
         }
     }
