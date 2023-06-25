@@ -1,6 +1,7 @@
 package com.uc.ccs.visuals.data
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -25,5 +26,8 @@ interface LocalCsvDataDao {
 
     @Query("SELECT * FROM local_history")
     suspend fun getAllHistory(): List<LocalHistory>
+
+    @Delete
+    suspend fun deleteHistory(history: LocalHistory)
 
 }

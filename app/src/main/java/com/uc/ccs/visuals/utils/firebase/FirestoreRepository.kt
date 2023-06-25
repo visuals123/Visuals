@@ -1,10 +1,13 @@
 package com.uc.ccs.visuals.utils.firebase
 
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
 import com.uc.ccs.visuals.screens.main.models.TravelHistory
 import com.uc.ccs.visuals.screens.settings.CsvData
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class FirestoreRepository: IFirestoreRepository {
     private val firestore = FirebaseFirestore.getInstance()
@@ -170,7 +173,8 @@ class FirestoreRepository: IFirestoreRepository {
             "startDestinationName" to startDestinationName,
             "endDestinationName" to endDestinationName,
             "startDestinationLatLng" to startDestinationLatLng,
-            "endDestinationLatLng" to endDestinationLatLng
+            "endDestinationLatLng" to endDestinationLatLng,
+            "timestamp" to Timestamp.now()
         )
 
         firestore.collection(collectionPath)
@@ -201,6 +205,7 @@ class FirestoreRepository: IFirestoreRepository {
                     val endDestinationName = rideHistoryData["endDestinationName"] as? String
                     val startLatLngMap = rideHistoryData["startDestinationLatLng"] as? Map<String, Double>
                     val endLatLngMap = rideHistoryData["endDestinationLatLng"] as? Map<String, Double>
+                    val timestamp = rideHistoryData["timestamp"] as? Timestamp // Retrieve the timestamp value
 
                     val startDestinationLatLng: LatLng? = startLatLngMap?.let { latLngMap ->
                         val latitude = latLngMap["latitude"]
@@ -223,7 +228,7 @@ class FirestoreRepository: IFirestoreRepository {
                     }
 
                     if (email != null && startDestinationName != null && endDestinationName != null &&
-                        startDestinationLatLng != null && endDestinationLatLng != null
+                        startDestinationLatLng != null && endDestinationLatLng != null && timestamp != null
                     ) {
                         val rideHistory = TravelHistory(
                             id = id,
@@ -231,7 +236,8 @@ class FirestoreRepository: IFirestoreRepository {
                             startDestinationName = startDestinationName,
                             endDestinationName = endDestinationName,
                             startDestinationLatLng = startDestinationLatLng,
-                            endDestinationLatLng = endDestinationLatLng
+                            endDestinationLatLng = endDestinationLatLng,
+                            timestamp = timestamp.toFormattedString()
                         )
                         rideHistoryList.add(rideHistory)
                     }
@@ -244,4 +250,26 @@ class FirestoreRepository: IFirestoreRepository {
             }
     }
 
+    override fun deleteTravelRideHistory(
+        collectionPath: String,
+        documentId: String,
+        onSuccess: () -> Unit,
+        onFailure: (e: Exception) -> Unit
+    ) {
+        firestore.collection(collectionPath)
+            .document(documentId)
+            .delete()
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
+
+}
+
+fun Timestamp.toFormattedString(): String {
+    val dateFormat = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault())
+    return dateFormat.format(this.toDate())
 }
