@@ -663,6 +663,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                         iconImageUrl = item.iconImageUrl,
                         description = item.description,
                         isWithinRadius = false,
+                        vehicleType = item.vehicleType
                     )
                 }
                 setMarkers(convertToMarkerInfoList)
@@ -805,6 +806,21 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             }
         }
 
+        transportationRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+            when (checkedId) {
+                R.id.carRadioButton -> {
+                    carRadioButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+                    motorcycleRadioButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+                    viewModel.setMarkersByVehicleType(VehicleType.CAR)
+                }
+                R.id.motorcycleRadioButton -> {
+                    carRadioButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+                    motorcycleRadioButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+                    viewModel.setMarkersByVehicleType(VehicleType.MOTORCYCLE)
+                }
+            }
+        }
+
         fabMyLocation.setOnClickListener {
             enableMyLocation()
         }
@@ -938,7 +954,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 distance = distance,
                 iconImageUrl = marker.iconImageUrl,
                 iconBitmapDescriptor = marker.iconBitmapDescriptor,
-                isWithinRadius = isWithinRadius
+                isWithinRadius = isWithinRadius,
+                vehicleType = marker.vehicleType
             )
         }
 

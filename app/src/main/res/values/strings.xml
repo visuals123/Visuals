@@ -78,7 +78,10 @@
     <string name="export_all">Export All</string>
     <string name="import_signs">Import Signs</string>
     <string name="exporting_data_please_wait">Exporting data, please wait...</string>
+    <string name="importing_data_please_wait">Importing data, please wait...</string>
     <string name="export">Export</string>
+    <string name="motorcycle">Motorcycle</string>
+    <string name="car">Car</string>
 
     <string-array name="language_entries">
         <item>English</item>

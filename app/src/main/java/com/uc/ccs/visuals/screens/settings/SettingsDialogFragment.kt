@@ -20,6 +20,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.uc.ccs.visuals.R
 import com.uc.ccs.visuals.databinding.FragmentSettingsDialogBinding
+import com.uc.ccs.visuals.screens.main.VehicleType
 import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
 import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
 import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
@@ -178,6 +179,7 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
                                 val lat = csvFields[4].trim().removePrefix("\"")
                                 val long = csvFields[5].trim().removeSuffix("\"")
                                 val iconImageUrl = csvFields[6].trim()
+                                val vehicleType = csvFields[7].trim()
 
                                 val csvData = CsvData(
                                     id = id,
@@ -185,7 +187,8 @@ class SettingsDialogFragment : BottomSheetDialogFragment() {
                                     title = title,
                                     description = description,
                                     position = "$lat-$long",
-                                    iconImageUrl = iconImageUrl
+                                    iconImageUrl = iconImageUrl,
+                                    vehicleType = vehicleType
                                 )
                                 csvDataList.add(csvData)
                             }
@@ -212,5 +215,6 @@ data class CsvData(
     val title: String,
     val description: String,
     val position: String,
-    val iconImageUrl: String? = null
+    val iconImageUrl: String? = null,
+    val vehicleType: String
 )

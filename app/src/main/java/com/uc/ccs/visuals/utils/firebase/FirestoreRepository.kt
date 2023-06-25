@@ -12,15 +12,27 @@ import java.util.Locale
 class FirestoreRepository: IFirestoreRepository {
     private val firestore = FirebaseFirestore.getInstance()
 
-    override fun saveMultipleData(collectionPath: String, data: List<CsvData>, onSuccess: () -> Unit, onFailure: (e: Exception) -> Unit) {
+    override fun saveMultipleData(
+        collectionPath: String,
+        data: List<CsvData>,
+        onSuccess: () -> Unit,
+        onFailure: (e: Exception) -> Unit
+    ) {
         val batch = firestore.batch()
 
-        data.map { csvData ->
+        data.forEach { csvData ->
+            if (csvData.id.isBlank() || csvData.code.isBlank() || csvData.title.isBlank() || csvData.description.isBlank()) {
+                onFailure(Exception("Incorrect data"))
+                return@forEach
+            }
+
             val csvDataMap = hashMapOf<String, Any>()
             csvDataMap["id"] = csvData.id
             csvDataMap["code"] = csvData.code
             csvDataMap["title"] = csvData.title
             csvDataMap["description"] = csvData.description
+
+            // Validate and add position data
             csvData.position.let { position ->
                 val latLong = position.split("-")
                 if (latLong.size == 2) {
@@ -32,23 +44,33 @@ class FirestoreRepository: IFirestoreRepository {
                             "longitude" to longitude
                         )
                         csvDataMap["position"] = positionMap
+                    } else {
+                        // Invalid latitude or longitude, skip this data
+                        return@forEach
                     }
+                } else {
+                    // Invalid position format, skip this data
+                    return@forEach
                 }
             }
+
             csvDataMap["iconImageUrl"] = csvData.iconImageUrl ?: ""
+            csvDataMap["vehicleType"] = csvData.vehicleType ?: ""
 
             val documentReference = firestore.collection(collectionPath)
                 .document(csvData.id)
-            batch.set(documentReference,csvDataMap)
+            batch.set(documentReference, csvDataMap)
         }
+
         batch.commit()
-            .addOnSuccessListener { documentReference ->
+            .addOnSuccessListener {
                 onSuccess()
             }
             .addOnFailureListener { e ->
                 onFailure(e)
             }
     }
+
 
     override fun getCsvData(collectionPath: String, onSuccess: (List<CsvData>) -> Unit, onFailure: (e: Exception) -> Unit) {
         firestore.collection(collectionPath)
@@ -64,8 +86,10 @@ class FirestoreRepository: IFirestoreRepository {
                     val description = csvDataMap["description"] as? String
                     val positionMap = csvDataMap["position"] as? Map<String, Any>
                     val iconImageUrl = csvDataMap["iconImageUrl"] as? String
+                    val vehicleType = csvDataMap["vehicleType"] as? String
 
-                    if (id != null && title != null && description != null && positionMap != null && code != null) {
+                    if (id != null && title != null && description != null && positionMap != null
+                        && code != null && vehicleType != null) {
                         val latitude = positionMap["latitude"] as? Double
                         val longitude = positionMap["longitude"] as? Double
 
@@ -77,7 +101,8 @@ class FirestoreRepository: IFirestoreRepository {
                                 title = title,
                                 description = description,
                                 position = position,
-                                iconImageUrl = iconImageUrl
+                                iconImageUrl = iconImageUrl,
+                                vehicleType = vehicleType
                             )
                             csvDataList.add(csvData)
                         }
