@@ -1055,6 +1055,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             }
 
             setMarkers(withCombinedIncomingPath)
+            setNearbyMarkers(withCombinedIncomingPath)
 
             val hasMultipleMarker = withinRadius.size > 1
 
