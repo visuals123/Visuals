@@ -41,7 +41,8 @@
         <item name="colorSecondaryVariant">@color/colorAccent</item> <!-- darker shade of orange -->
         <item name="colorOnSecondary">@color/md_black_1000</item> <!-- black -->
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item> <!-- ?attr/colorPrimaryVariant -->
+        <!-- <item name="android:windowLightStatusBar">true</item> -->
         <!-- Customize your theme here. -->
         <item name="windowNoTitle">true</item>
     </style>

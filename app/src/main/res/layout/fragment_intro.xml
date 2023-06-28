@@ -10,12 +10,11 @@
         android:id="@+id/imageView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="60dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.491"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/bg_travel" />
+        app:srcCompat="@drawable/travel" />
 
     <ImageView
         android:id="@+id/imageView2"
@@ -35,7 +34,7 @@
         android:layout_marginStart="28dp"
         android:layout_marginTop="10dp"
         android:text="@string/welcome_to_visuals"
-        android:fontFamily="sans-serif-medium"
+        android:fontFamily="@font/sf_medium"
         android:textSize="@dimen/text_size_xxxxlarge"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/tv_description" />
@@ -45,7 +44,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/voice_integrated_signages_nwith_user_aid_leading_system"
-        android:fontFamily="sans-serif-medium"
+        android:fontFamily="@font/sf_medium"
         android:textColor="@color/md_blue_800"
         android:textSize="@dimen/text_size_medium"
         android:layout_marginBottom="@dimen/margin_xmedium"
@@ -59,7 +58,7 @@
         android:layout_width="@dimen/intro_button_width"
         android:layout_height="@dimen/field_height"
         android:background="@drawable/background_button_intro"
-        android:fontFamily="sans-serif-medium"
+        android:fontFamily="@font/sf_medium"
         android:gravity="center"
         android:text="@string/let_s_go"
         android:textColor="#ffffff"
