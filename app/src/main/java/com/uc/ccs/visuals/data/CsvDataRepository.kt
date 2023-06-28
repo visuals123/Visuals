@@ -42,4 +42,8 @@ class CsvDataRepository(context: Context) {
         return localCsvDataDao.getAllHistory()
     }
 
+    suspend fun delete(localHistory: LocalHistory) {
+        localCsvDataDao.deleteHistory(localHistory)
+    }
+
 }

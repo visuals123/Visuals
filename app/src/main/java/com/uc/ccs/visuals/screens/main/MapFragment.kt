@@ -679,6 +679,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                         iconImageUrl = item.iconImageUrl,
                         description = item.description,
                         isWithinRadius = false,
+                        vehicleType = item.vehicleType
                     )
                 }
                 setMarkers(convertToMarkerInfoList)
@@ -817,6 +818,21 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 else -> {
                     findNavController().navigate(R.id.action_mapFragment_to_settingsDialogFragment)
                     true
+                }
+            }
+        }
+
+        transportationRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+            when (checkedId) {
+                R.id.carRadioButton -> {
+                    carRadioButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+                    motorcycleRadioButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+                    viewModel.setMarkersByVehicleType(VehicleType.CAR)
+                }
+                R.id.motorcycleRadioButton -> {
+                    carRadioButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+                    motorcycleRadioButton.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+                    viewModel.setMarkersByVehicleType(VehicleType.MOTORCYCLE)
                 }
             }
         }
@@ -971,7 +987,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 distance = distance,
                 iconImageUrl = marker.iconImageUrl,
                 iconBitmapDescriptor = marker.iconBitmapDescriptor,
-                isWithinRadius = isWithinRadius
+                isWithinRadius = isWithinRadius,
+                vehicleType = marker.vehicleType
             )
         }
 
@@ -1207,7 +1224,7 @@ enum class NotificationMessage(val template: String) {
 
 }
 
-const val DISTANCE_RADIUS = 3.0
+const val DISTANCE_RADIUS = 250.0
 const val DISTANCE_FROM_PATH = 10.0
 const val POLYLINE_WIDTH = 10f
 const val MAP_UPDATE_INTERVAL = 10000L

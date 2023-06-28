@@ -1,23 +1,38 @@
 package com.uc.ccs.visuals.utils.firebase
 
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.uc.ccs.visuals.screens.admin.tabs.users.UserItem
 import com.uc.ccs.visuals.screens.main.models.TravelHistory
 import com.uc.ccs.visuals.screens.settings.CsvData
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class FirestoreRepository: IFirestoreRepository {
     private val firestore = FirebaseFirestore.getInstance()
 
-    override fun saveMultipleData(collectionPath: String, data: List<CsvData>, onSuccess: () -> Unit, onFailure: (e: Exception) -> Unit) {
+    override fun saveMultipleData(
+        collectionPath: String,
+        data: List<CsvData>,
+        onSuccess: () -> Unit,
+        onFailure: (e: Exception) -> Unit
+    ) {
         val batch = firestore.batch()
 
-        data.map { csvData ->
+        data.forEach { csvData ->
+            if (csvData.id.isBlank() || csvData.code.isBlank() || csvData.title.isBlank() || csvData.description.isBlank()) {
+                onFailure(Exception("Incorrect data"))
+                return@forEach
+            }
+
             val csvDataMap = hashMapOf<String, Any>()
             csvDataMap["id"] = csvData.id
             csvDataMap["code"] = csvData.code
             csvDataMap["title"] = csvData.title
             csvDataMap["description"] = csvData.description
+
+            // Validate and add position data
             csvData.position.let { position ->
                 val latLong = position.split("-")
                 if (latLong.size == 2) {
@@ -29,23 +44,33 @@ class FirestoreRepository: IFirestoreRepository {
                             "longitude" to longitude
                         )
                         csvDataMap["position"] = positionMap
+                    } else {
+                        // Invalid latitude or longitude, skip this data
+                        return@forEach
                     }
+                } else {
+                    // Invalid position format, skip this data
+                    return@forEach
                 }
             }
+
             csvDataMap["iconImageUrl"] = csvData.iconImageUrl ?: ""
+            csvDataMap["vehicleType"] = csvData.vehicleType ?: ""
 
             val documentReference = firestore.collection(collectionPath)
                 .document(csvData.id)
-            batch.set(documentReference,csvDataMap)
+            batch.set(documentReference, csvDataMap)
         }
+
         batch.commit()
-            .addOnSuccessListener { documentReference ->
+            .addOnSuccessListener {
                 onSuccess()
             }
             .addOnFailureListener { e ->
                 onFailure(e)
             }
     }
+
 
     override fun getCsvData(collectionPath: String, onSuccess: (List<CsvData>) -> Unit, onFailure: (e: Exception) -> Unit) {
         firestore.collection(collectionPath)
@@ -61,8 +86,10 @@ class FirestoreRepository: IFirestoreRepository {
                     val description = csvDataMap["description"] as? String
                     val positionMap = csvDataMap["position"] as? Map<String, Any>
                     val iconImageUrl = csvDataMap["iconImageUrl"] as? String
+                    val vehicleType = csvDataMap["vehicleType"] as? String
 
-                    if (id != null && title != null && description != null && positionMap != null && code != null) {
+                    if (id != null && title != null && description != null && positionMap != null
+                        && code != null && vehicleType != null) {
                         val latitude = positionMap["latitude"] as? Double
                         val longitude = positionMap["longitude"] as? Double
 
@@ -74,7 +101,8 @@ class FirestoreRepository: IFirestoreRepository {
                                 title = title,
                                 description = description,
                                 position = position,
-                                iconImageUrl = iconImageUrl
+                                iconImageUrl = iconImageUrl,
+                                vehicleType = vehicleType
                             )
                             csvDataList.add(csvData)
                         }
@@ -170,7 +198,8 @@ class FirestoreRepository: IFirestoreRepository {
             "startDestinationName" to startDestinationName,
             "endDestinationName" to endDestinationName,
             "startDestinationLatLng" to startDestinationLatLng,
-            "endDestinationLatLng" to endDestinationLatLng
+            "endDestinationLatLng" to endDestinationLatLng,
+            "timestamp" to Timestamp.now()
         )
 
         firestore.collection(collectionPath)
@@ -201,6 +230,7 @@ class FirestoreRepository: IFirestoreRepository {
                     val endDestinationName = rideHistoryData["endDestinationName"] as? String
                     val startLatLngMap = rideHistoryData["startDestinationLatLng"] as? Map<String, Double>
                     val endLatLngMap = rideHistoryData["endDestinationLatLng"] as? Map<String, Double>
+                    val timestamp = rideHistoryData["timestamp"] as? Timestamp // Retrieve the timestamp value
 
                     val startDestinationLatLng: LatLng? = startLatLngMap?.let { latLngMap ->
                         val latitude = latLngMap["latitude"]
@@ -223,7 +253,7 @@ class FirestoreRepository: IFirestoreRepository {
                     }
 
                     if (email != null && startDestinationName != null && endDestinationName != null &&
-                        startDestinationLatLng != null && endDestinationLatLng != null
+                        startDestinationLatLng != null && endDestinationLatLng != null && timestamp != null
                     ) {
                         val rideHistory = TravelHistory(
                             id = id,
@@ -231,7 +261,8 @@ class FirestoreRepository: IFirestoreRepository {
                             startDestinationName = startDestinationName,
                             endDestinationName = endDestinationName,
                             startDestinationLatLng = startDestinationLatLng,
-                            endDestinationLatLng = endDestinationLatLng
+                            endDestinationLatLng = endDestinationLatLng,
+                            timestamp = timestamp.toFormattedString()
                         )
                         rideHistoryList.add(rideHistory)
                     }
@@ -244,4 +275,26 @@ class FirestoreRepository: IFirestoreRepository {
             }
     }
 
+    override fun deleteTravelRideHistory(
+        collectionPath: String,
+        documentId: String,
+        onSuccess: () -> Unit,
+        onFailure: (e: Exception) -> Unit
+    ) {
+        firestore.collection(collectionPath)
+            .document(documentId)
+            .delete()
+            .addOnSuccessListener {
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                onFailure(e)
+            }
+    }
+
+}
+
+fun Timestamp.toFormattedString(): String {
+    val dateFormat = SimpleDateFormat("dd MMMM yyyy, HH:mm", Locale.getDefault())
+    return dateFormat.format(this.toDate())
 }

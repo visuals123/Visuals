@@ -156,6 +156,19 @@ class AdminDashboardFragment : Fragment() {
         }
     }
 
+    private fun showLoadingDialogImport() {
+        dialog = Dialog(requireContext()).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(R.layout.progress_dialog_import)
+            setCancelable(false)
+            show()
+        }
+    }
+
+    private fun dismissDialog() {
+        dialog.dismiss()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -210,13 +223,16 @@ class AdminDashboardFragment : Fragment() {
                     when (state) {
                         is FirestoreViewModel.OperationState.Success -> {
                             viewModel.insertCsvDataToLocalDb(state.csvData)
+                            Toast.makeText(requireContext(), getString(R.string.successfully_uploaded), Toast.LENGTH_SHORT).show()
+                            dismissDialog()
                         }
                         FirestoreViewModel.OperationState.Loading -> {
-                            // Show loading dialog
+                            showLoadingDialogImport()
                         }
                         is FirestoreViewModel.OperationState.Error -> {
                             val exception = state.exception
                             Toast.makeText(requireContext(), exception.localizedMessage, Toast.LENGTH_SHORT).show()
+                            dismissDialog()
                         }
                     }
                 }
@@ -257,7 +273,7 @@ class AdminDashboardFragment : Fragment() {
 
     private fun openFilePicker() {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.type = "text/csv"
+        intent.type = "*/*"
         startActivityForResult(intent, FILE_PICKER_REQUEST_CODE)
     }
 
@@ -265,12 +281,16 @@ class AdminDashboardFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == FILE_PICKER_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             val selectedFileUri: Uri? = data?.data
-            selectedFileUri?.let {
+
+            if (selectedFileUri != null) {
                 val csvDataList = readCsvFile(selectedFileUri)
                 firestoreViewModel.saveCsvData(data = csvDataList)
+            } else {
+                Toast.makeText(requireContext(), "Invalid file selected", Toast.LENGTH_SHORT).show()
             }
         }
     }
+
 
     private fun readCsvFile(fileUri: Uri): List<CsvData> {
         val csvDataList = mutableListOf<CsvData>()
@@ -287,7 +307,7 @@ class AdminDashboardFragment : Fragment() {
                         }
 
                         val csvFields = line?.split(",") ?: continue
-                        if (csvFields.size >= 6) { // Check if the row has at least 6 fields
+                        if (csvFields.size >= 8) { // Check if the row has at least 8 fields
                             val id = csvFields[0].trim()
                             val code = csvFields[1].trim()
                             val title = csvFields[2].trim()
@@ -295,16 +315,28 @@ class AdminDashboardFragment : Fragment() {
                             val lat = csvFields[4].trim().removePrefix("\"")
                             val long = csvFields[5].trim().removeSuffix("\"")
                             val iconImageUrl = csvFields[6].trim()
+                            val vehicleType = csvFields[7].trim()
 
-                            val csvData = CsvData(
-                                id = id,
-                                code = code,
-                                title = title,
-                                description = description,
-                                position = "$lat-$long",
-                                iconImageUrl = iconImageUrl
-                            )
-                            csvDataList.add(csvData)
+                            // Validate required fields
+                            if (id.isNotEmpty() && code.isNotEmpty() && title.isNotEmpty() &&
+                                description.isNotEmpty() && lat.isNotEmpty() && long.isNotEmpty() &&
+                                vehicleType.isNotEmpty()
+                            ) {
+                                val csvData = CsvData(
+                                    id = id,
+                                    code = code,
+                                    title = title,
+                                    description = description,
+                                    position = "$lat-$long",
+                                    iconImageUrl = iconImageUrl,
+                                    vehicleType = vehicleType
+                                )
+                                csvDataList.add(csvData)
+                            } else {
+                                // Log or handle invalid row data
+                            }
+                        } else {
+                            // Log or handle rows with insufficient fields
                         }
                     }
                 }
@@ -315,6 +347,7 @@ class AdminDashboardFragment : Fragment() {
 
         return csvDataList
     }
+
 
     class TabPagerAdapter(fragmentManager: FragmentManager) :
         FragmentPagerAdapter(fragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {

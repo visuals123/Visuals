@@ -1,13 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/text"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground"
-    android:paddingLeft="@dimen/list_item_spacing"
-    android:paddingTop="@dimen/list_item_spacing_half"
-    android:paddingRight="@dimen/list_item_spacing"
-    android:paddingBottom="@dimen/list_item_spacing_half"
-    android:textAppearance="@style/TextAppearance.AppCompat.Large"
-    tools:text="Hello" />
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="@dimen/padding_medium"
+    tools:text="Hello"
+    android:id="@+id/cl_container">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/currentLocationTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:drawablePadding="@dimen/padding_standard"
+        app:drawableStartCompat="@drawable/ic_map_mark"
+        app:drawableTint="@color/colorPrimary"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        app:layout_constraintEnd_toStartOf="@id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/destinationTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:drawablePadding="@dimen/padding_standard"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textStyle="bold"
+        app:drawableStartCompat="@drawable/ic_map_mark"
+        app:drawableTint="@color/md_red_400"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/currentLocationTextView" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/tv_timestamp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/md_grey_800"
+        android:layout_marginTop="@dimen/margin_small"
+        android:textSize="@dimen/text_size_small"
+        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+        android:layout_marginStart="@dimen/margin_standard"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/destinationTextView" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/iv_more"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/ic_more_vert"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/guideline"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.9"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

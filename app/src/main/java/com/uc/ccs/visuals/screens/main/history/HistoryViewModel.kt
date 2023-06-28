@@ -51,4 +51,10 @@ class HistoryViewModel(private val repository: CsvDataRepository) : ViewModel() 
         }
     }
 
+    fun deleteHistoryItem(item: LocalHistory) {
+        viewModelScope.launch {
+            repository.delete(item)
+        }
+    }
+
 }
