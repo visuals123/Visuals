@@ -26,6 +26,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -117,6 +119,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     private lateinit var roadsAPIClient: RoadsAPIClient
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
     private var isDirectionsMode = true
+    private lateinit var locationPermissionLauncher: ActivityResultLauncher<String>
 
     private lateinit var binding: FragmentMapBinding
 
@@ -553,6 +556,9 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
+
         childFragmentManager.beginTransaction()
             .replace(R.id.cl_actv_container, autocompleteFragment)
             .commit()
@@ -571,6 +577,16 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             setupObservers()
             setupViews()
         }
+
+        locationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                onMapReady(mMap)
+            } else {
+                Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
     }
 
     private fun loadAd() {
@@ -829,6 +845,16 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     override fun onMapReady(p0: GoogleMap) {
         mMap = p0
 
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED) {
+            mMap.isMyLocationEnabled = true
+            mMap.uiSettings.isMyLocationButtonEnabled = true
+
+        } else {
+            // Request permission
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
         if (requireContext().hasLocationPermission()) {
             try {
 
@@ -880,6 +906,13 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 }
 
                 fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+
+                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                    location?.let {
+                        val currentLatLng = LatLng(it.latitude, it.longitude)
+                        animateCamera(currentLatLng, CAMERA_ZOOM)
+                    }
+                }
 
             } catch (securityException: SecurityException) {
 
@@ -1109,11 +1142,11 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
     override fun checkPermission(): Boolean = checkLocationPermissions(LOCATION_PERMISSION_REQUEST_CODE)
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    /* override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
             LOCATION_PERMISSION_REQUEST_CODE -> {
                 if (grantResults.contains(PackageManager.PERMISSION_GRANTED)) {
-                    enableMyLocation()
+                    // If permissions were granted, enable location updates and move camera
                     onMapReady(mMap)
                 } else {
                     Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
@@ -1122,6 +1155,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
     }
+    */
+
 
     override fun onInit(p0: Int) {
         if (p0 == TextToSpeech.SUCCESS) {
