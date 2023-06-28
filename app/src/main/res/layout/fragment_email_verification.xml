@@ -12,7 +12,12 @@
         android:orientation="horizontal" >
 
     </LinearLayout>
-
+    <ImageView
+        android:id="@+id/btn_back_to_login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/margin_smedium"
+        android:src="@drawable/ic_arrow_back"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -43,7 +48,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/sf_regular"
-            android:text="Check your inbox for the verification email sent to "
+            android:text="@string/email_verfication_mssg1"
             android:textSize="15sp"
             android:gravity="center" />
 
@@ -54,99 +59,31 @@
             android:layout_marginBottom="25dp"
             android:fontFamily="@font/sf_regular"
             android:text="gmail account"
+            android:textStyle="bold"
             android:textSize="15sp"
             android:gravity="center" />
-        
-        <LinearLayout
+
+        <TextView
+            android:id="@+id/textView5"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center"
-            android:orientation="horizontal" >
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputCode1"
-                android:layout_width="48dp"
-                android:layout_height="50dp"
-                android:fontFamily="@font/sf_bold"
-                android:gravity="center"
-                android:imeOptions="actionNext"
-                android:importantForAutofill="no"
-                android:inputType="number"
-                android:maxLength="1"
-                android:textSize="24sp"
-                tools:ignore="LabelFor,SpeakableTextPresentCheck" />
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputCode2"
-                android:layout_width="48dp"
-                android:layout_height="50dp"
-                android:layout_marginStart="4dp"
-                android:fontFamily="@font/sf_bold"
-                android:gravity="center"
-                android:imeOptions="actionNext"
-                android:importantForAutofill="no"
-                android:inputType="number"
-                android:maxLength="1"
-                android:textSize="24sp"
-                tools:ignore="LabelFor,SpeakableTextPresentCheck" />
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputCode3"
-                android:layout_width="48dp"
-                android:layout_height="50dp"
-                android:layout_marginStart="4dp"
-                android:fontFamily="@font/sf_bold"
-                android:gravity="center"
-                android:imeOptions="actionNext"
-                android:importantForAutofill="no"
-                android:inputType="number"
-                android:maxLength="1"
-                android:textSize="24sp"
-                tools:ignore="LabelFor,SpeakableTextPresentCheck" />
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputCode4"
-                android:layout_width="48dp"
-                android:layout_height="50dp"
-                android:layout_marginStart="4dp"
-                android:fontFamily="@font/sf_bold"
-                android:gravity="center"
-                android:imeOptions="actionNext"
-                android:importantForAutofill="no"
-                android:inputType="number"
-                android:maxLength="1"
-                android:textSize="24sp"
-                tools:ignore="LabelFor,SpeakableTextPresentCheck" />
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/inputCode5"
-                android:layout_width="48dp"
-                android:layout_height="50dp"
-                android:layout_marginStart="4dp"
-                android:fontFamily="@font/sf_bold"
-                android:gravity="center"
-                android:imeOptions="actionDone"
-                android:importantForAutofill="no"
-                android:inputType="number"
-                android:maxLength="1"
-                android:textSize="24sp"
-                tools:ignore="LabelFor,SpeakableTextPresentCheck" />
-
-        </LinearLayout>
+            android:layout_marginBottom="25dp"
+            android:fontFamily="@font/sf_regular"
+            android:text="@string/email_verification_mssg"
+            android:textSize="15sp"
+            android:gravity="center"/>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_submit"
+            android:id="@+id/proceed"
             style="@style/Widget.Material3.Button.IconButton.Filled"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginTop="40dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="20dp"
-            android:fontFamily="@font/sf_bold"
-            android:text="Submit"
+            android:layout_width="200dp"
+            android:layout_height="50dp"
+            android:backgroundTint="@color/colorPrimary"
             android:textColor="@color/white"
-            android:textSize="20sp" />
+            android:textSize="16sp"
+            android:text="PROCEED"
+            android:textAlignment="center"
+            android:visibility="visible" />
 
     </LinearLayout>
 

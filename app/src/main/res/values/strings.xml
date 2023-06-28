@@ -88,6 +88,8 @@
     <string name="export">Export</string>
     <string name="motorcycle">Motorcycle</string>
     <string name="car">Car</string>
+    <string name="email_verification_mssg">(If you\'re done verifying your account, you can tap the button below.)</string>
+    <string name="email_verfication_mssg1">Check your Inbox/Spam Folder for the verification email sent to</string>
 
     <string-array name="language_entries">
         <item>English</item>
