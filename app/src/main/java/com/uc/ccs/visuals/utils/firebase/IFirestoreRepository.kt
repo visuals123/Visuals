@@ -22,6 +22,7 @@ interface IFirestoreRepository {
     )
     fun getTravelRideHistory(
         collectionPath: String,
+        email: String,
         onSuccess: (List<TravelHistory>) -> Unit,
         onFailure: (e: Exception) -> Unit
     )
