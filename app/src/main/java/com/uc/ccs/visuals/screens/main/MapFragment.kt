@@ -134,6 +134,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
     private var mInterstitialAd: InterstitialAd? = null
 
+    private lateinit var repository: CsvDataRepository
+
     private val onSuccessSaveRide : () -> Unit = {
     }
 
@@ -161,7 +163,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
         Places.initialize(requireContext(), resources.getString(R.string.google_map_api_key))
 
-        val repository = CsvDataRepository(requireContext())
+        repository = CsvDataRepository(requireContext())
         val viewModelFactory = AdminDashboardViewModelFactory(repository)
 
         adminViewModel = ViewModelProvider(requireActivity(),viewModelFactory).get(AdminDashboardViewModel::class.java)
@@ -678,6 +680,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 when (state) {
                     is LocalDBState.Success -> {
                         setAllMarkers(state.csvData.toMarkerInfoList())
+                        setAllMarkersUntouched(state.csvData.toMarkerInfoList())
                     }
 
                     is LocalDBState.Error -> {
@@ -718,10 +721,18 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             historyViewModel.selectedHistory.observe(viewLifecycleOwner) {
                 val startLocation = it.startDestinationLatLng.split(",")
                 val endLocation = it.endDestinationLatLng.split(",")
-                setupRide(it,
-                    LatLng(startLocation[0].toDouble(), startLocation[1].toDouble()),
-                    LatLng(endLocation[0].toDouble(), endLocation[1].toDouble()),
-                )
+                currentLatLng.value?.let {currentlatlng ->
+                    setupRide(it,
+                        currentlatlng,
+                        LatLng(endLocation[0].toDouble(), endLocation[1].toDouble()),
+                    )
+                }
+            }
+
+            signType.observe(viewLifecycleOwner) {
+                val markers = allMarkersUntouched.value ?: emptyList()
+                setAllMarkers(filterSignByType(markers.toMutableList(), it) ?: emptyList())
+                updateMapMarkers(currentLatLng.value)
             }
         }
     }
@@ -1049,13 +1060,15 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             val newMarkers = filterByRadius?.second ?: emptyList()
             val withinRadius = newMarkers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
 
-            val withCombinedIncomingPath = mutableListOf<MarkerInfo>().apply {
+            val withCombinedIncomingPath: MutableList<MarkerInfo> = mutableListOf<MarkerInfo>().apply {
                 addAll(withinRadius)
                 addAll(incomingMarkers)
             }
 
-            setMarkers(withCombinedIncomingPath)
-            setNearbyMarkers(withCombinedIncomingPath)
+            val filterByVehicleType = filterSignByType(withCombinedIncomingPath, signType.value ?: VehicleType.CAR) ?: emptyList()
+
+            setMarkers(filterByVehicleType)
+            setNearbyMarkers(filterByVehicleType)
 
             val hasMultipleMarker = withinRadius.size > 1
 
