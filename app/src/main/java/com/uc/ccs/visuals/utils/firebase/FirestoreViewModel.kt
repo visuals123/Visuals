@@ -57,10 +57,11 @@ class FirestoreViewModel : ViewModel() {
     }
 
     fun getTravelRideHistory(
+        email: String,
         onSuccess: (List<TravelHistory>) -> Unit,
         onFailure: (e: Exception) -> Unit
     ) {
-        repository.getTravelRideHistory(TRAVEL_HISTORY_COLLECTION_PATH, onSuccess, onFailure)
+        repository.getTravelRideHistory(TRAVEL_HISTORY_COLLECTION_PATH, email, onSuccess, onFailure)
     }
 
     fun deleteTravelRideHistory(

@@ -1,5 +1,6 @@
 package com.uc.ccs.visuals.screens.main.history
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.PopupMenu
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -23,6 +25,7 @@ import com.uc.ccs.visuals.databinding.FragmentHistoryDialogListDialogBinding
 import com.uc.ccs.visuals.databinding.FragmentHistoryDialogListDialogItemBinding
 import com.uc.ccs.visuals.factories.AdminDashboardViewModelFactory
 import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
+import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
 import kotlin.math.min
 
 
@@ -57,7 +60,8 @@ class HistoryDialogFragment : BottomSheetDialogFragment() {
             with(viewmodel) {
 
                 viewmodel.getLocalHistory()
-                firestoreViewModel.getTravelRideHistory({
+                val email = SharedPreferenceManager.getCurrentUser(requireContext())?.email ?: ""
+                firestoreViewModel.getTravelRideHistory(email,{
                     saveHistoryListToLocal(it.map { it.toLocalHistory() })
                     getLocalHistory()
                 }, {
@@ -77,9 +81,11 @@ class HistoryDialogFragment : BottomSheetDialogFragment() {
                         list.layoutManager = LinearLayoutManager(context)
                         list.adapter = HistoryItemAdapter(it,
                             onItemClick = { item ->
-                                setSelectedHistory(item)
-                                setIsFromHistory(true)
-                                dismiss()
+                                showConfirmationDialog(requireContext(), "Are you sure you want to use this ride history?") {
+                                    setSelectedHistory(item)
+                                    setIsFromHistory(true)
+                                    dismiss()
+                                }
                             },
                             onItemDelete = {item, view, pos ->
                                 showPopupMenu(item, view, pos)
@@ -102,14 +108,16 @@ class HistoryDialogFragment : BottomSheetDialogFragment() {
         popupMenu.setOnMenuItemClickListener { item: MenuItem ->
             when (item.itemId) {
                 R.id.menu_delete -> {
-                    firestoreViewModel.deleteTravelRideHistory(localHistory.id, {
-                        viewmodel.deleteHistoryItem(localHistory)
-                        binding.list.adapter?.notifyItemRemoved(position)
-                        dismiss()
-                    },{
-                        Toast.makeText(requireContext(), getString(R.string.unable_to_delete_history_item), Toast.LENGTH_SHORT).show()
-                        dismiss()
-                    })
+                    showConfirmationDialog(requireContext(), "Are you sure you want to delete?") {
+                        firestoreViewModel.deleteTravelRideHistory(localHistory.id, {
+                            viewmodel.deleteHistoryItem(localHistory)
+                            binding.list.adapter?.notifyItemRemoved(position)
+                            dismiss()
+                        },{
+                            Toast.makeText(requireContext(), getString(R.string.unable_to_delete_history_item), Toast.LENGTH_SHORT).show()
+                            dismiss()
+                        })
+                    }
                     true
                 }
                 else -> false
@@ -117,6 +125,18 @@ class HistoryDialogFragment : BottomSheetDialogFragment() {
         }
 
         popupMenu.show()
+    }
+
+    private fun showConfirmationDialog(context: Context, message: String, onConfirm: () -> Unit) {
+        val builder = AlertDialog.Builder(context)
+        builder.setTitle("Confirmation")
+        builder.setMessage(message)
+        builder.setPositiveButton("Confirm") { _, _ ->
+            onConfirm()
+        }
+        builder.setNegativeButton("Cancel", null)
+        builder.setCancelable(false)
+        builder.show()
     }
 
     private inner class ViewHolder constructor(binding: FragmentHistoryDialogListDialogItemBinding) :

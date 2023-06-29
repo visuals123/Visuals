@@ -214,10 +214,12 @@ class FirestoreRepository: IFirestoreRepository {
 
     override fun getTravelRideHistory(
         collectionPath: String,
+        email: String,
         onSuccess: (List<TravelHistory>) -> Unit,
         onFailure: (e: Exception) -> Unit
     ) {
         firestore.collection(collectionPath)
+            .whereEqualTo("email", email)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val rideHistoryList = mutableListOf<TravelHistory>()
