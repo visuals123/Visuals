@@ -1098,10 +1098,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 addAll(incomingMarkers)
             }
 
-            val filterByVehicleType = filterSignByType(withCombinedIncomingPath, signType.value ?: VehicleType.CAR) ?: emptyList()
-
-            setMarkers(filterByVehicleType)
-            setNearbyMarkers(filterByVehicleType)
+            setMarkers(withCombinedIncomingPath)
+            setNearbyMarkers(withCombinedIncomingPath)
 
             val hasMultipleMarker = withinRadius.size > 1
 

@@ -26,10 +26,8 @@ class ViewPagerAdapter(private val context: Context, private val items: List<Mar
         val imageResource = getRoadSignImageResource(item.code)
 
         with(binding) {
-//            Glide.with(root.context)
-//                .load(imageResource)
-//                .into(iconImageView)
             iconImageView.setImageResource(imageResource)
+
             tvDistance.text = formatDistance(item.distance ?: 0.0)
             tvTitle.text = item.title
             tvDescription.text = item.description
@@ -76,7 +74,7 @@ class ViewPagerAdapter(private val context: Context, private val items: List<Mar
         R5_1S("R5-1S", R.drawable.sign_no_parking_sign)
     }
 
-    fun getRoadSignImageResource(code: String): Int {
+    private fun getRoadSignImageResource(code: String): Int {
         val roadSign = RoadSignCode.values().find { it.code == code }
         return roadSign?.imageResource ?: R.drawable.sign_loading
     }
