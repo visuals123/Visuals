@@ -29,6 +29,9 @@ class MapViewModel(): ViewModel() {
     private val _allMarkers = MutableLiveData<List<MarkerInfo>>()
     val allMarkers: LiveData<List<MarkerInfo>> = _allMarkers
 
+    private val _allMarkersUntouched = MutableLiveData<List<MarkerInfo>>()
+    val allMarkersUntouched: LiveData<List<MarkerInfo>> = _allMarkersUntouched
+
     private val _currentDirection = MutableLiveData<DirectionsRoute>()
     val currentDirection: LiveData<DirectionsRoute> = _currentDirection
 
@@ -65,6 +68,9 @@ class MapViewModel(): ViewModel() {
     private val _startARide = MutableLiveData<Boolean>(false)
     val startARide: LiveData<Boolean> get() = _startARide
 
+    private val _signType = MutableLiveData<VehicleType>()
+    val signType: LiveData<VehicleType> = _signType
+
     fun setMarkers(markerOptionsList: List<MarkerInfo>) {
         _markers.value = markerOptionsList
     }
@@ -76,10 +82,24 @@ class MapViewModel(): ViewModel() {
     fun setMarkersByVehicleType(vehicleType: VehicleType) {
         _markers.value = when(vehicleType) {
             VehicleType.CAR -> {
+                _signType.value = VehicleType.CAR
                 _nearbyMarkers.value?.filter { it.vehicleType == VehicleType.CAR.value }
             }
             VehicleType.MOTORCYCLE -> {
+                _signType.value = VehicleType.MOTORCYCLE
                 _nearbyMarkers.value
+            }
+        }
+    }
+
+    fun filterSignByType(list: MutableList<MarkerInfo>, vehicleType: VehicleType): List<MarkerInfo>? {
+        return  when(vehicleType) {
+            VehicleType.CAR -> {
+                list.filter { it.vehicleType == VehicleType.CAR.value }
+            }
+
+            VehicleType.MOTORCYCLE -> {
+                list
             }
         }
     }
@@ -114,6 +134,10 @@ class MapViewModel(): ViewModel() {
 
     fun setAllMarkers(markerOptionsList: List<MarkerInfo>) {
         _allMarkers.value = markerOptionsList
+    }
+
+    fun setAllMarkersUntouched(markerOptionsList: List<MarkerInfo>) {
+        _allMarkersUntouched.value = markerOptionsList
     }
 
     fun setCurrentUser(user: UserItem) {
