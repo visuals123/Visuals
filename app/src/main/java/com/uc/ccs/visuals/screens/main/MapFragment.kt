@@ -59,6 +59,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.gms.tasks.OnFailureListener
@@ -583,9 +584,12 @@ class MapFragment : Fragment(), OnMapReadyCallback,
         locationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
                 onMapReady(mMap)
-            } else {
+            }
+            /* else {
                 Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show()
             }
+
+             */
         }
 
 
@@ -855,6 +859,12 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
     override fun onMapReady(p0: GoogleMap) {
         mMap = p0
+
+        /* // Customize the map styling
+        val styleOptions = MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_style)
+        mMap.setMapStyle(styleOptions)
+
+         */
 
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
