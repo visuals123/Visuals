@@ -794,17 +794,17 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 val filterByRadius = latLng?.let {
                     filterMarkersByRadius(
                         it,
-                        allMarkers.value ?: emptyList(),
+                        getIncomingMarkers(),
                         DISTANCE_RADIUS
                     )
                 }
 
-                filterByRadius?.first?.map { markerInfo ->
-                    val markerOptions = MarkerOptions()
-                        .position(markerInfo.position)
-                        .icon(markerInfo.icon)
-                    mMap.addMarker(markerOptions)
-                }
+//                filterByRadius?.first?.map { markerInfo ->
+//                    val markerOptions = MarkerOptions()
+//                        .position(markerInfo.position)
+//                        .icon(markerInfo.icon)
+//                    mMap.addMarker(markerOptions)
+//                }
 
                 val newMarkers = filterByRadius?.second ?: emptyList()
                 val withinRadius = newMarkers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
@@ -1075,10 +1075,13 @@ class MapFragment : Fragment(), OnMapReadyCallback,
 
     override fun getMarkerMessageByLocation(latLng: LatLng): LocationTrackingService.NotificationContent? {
         return with(viewModel) {
+
+            val incomingMarkers = getIncomingMarkers()
+
             val filterByRadius = latLng?.let {
                 filterMarkersByRadius(
                     it,
-                    allMarkers.value ?: emptyList(),
+                    incomingMarkers,
                     DISTANCE_RADIUS
                 )
             }
@@ -1090,7 +1093,6 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                 mMap.addMarker(markerOptions)
             }
 
-            val incomingMarkers = getIncomingMarkers()
             val newMarkers = filterByRadius?.second ?: emptyList()
             val withinRadius = newMarkers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
 
@@ -1237,7 +1239,7 @@ enum class NotificationMessage(val template: String) {
 
 }
 
-const val DISTANCE_RADIUS = 5.0
+const val DISTANCE_RADIUS = 250.0
 const val DISTANCE_FROM_PATH = 5.0
 const val POLYLINE_WIDTH = 10f
 const val MAP_UPDATE_INTERVAL = 10000L
