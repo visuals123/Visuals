@@ -1236,7 +1236,7 @@ enum class NotificationMessage(val template: String) {
 
 }
 
-const val DISTANCE_RADIUS = 250.0
+const val DISTANCE_RADIUS = 100.0
 const val DISTANCE_FROM_PATH = 10.0
 const val POLYLINE_WIDTH = 10f
 const val MAP_UPDATE_INTERVAL = 10000L
