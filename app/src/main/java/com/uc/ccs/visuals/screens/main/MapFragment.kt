@@ -294,6 +294,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                         val cacheStartDestinationName = SharedPreferenceManager.getCurrentDestinationName(requireContext())
                                         val cacheStartDestinationLatlng = currentLatLng.value
                                         val cacheEndDestinationLatlng = currentDestination.value
+                                        Log.d("qweqwe", "setupDirectionButton: ${cacheUser?.email}")
                                         if (cacheStartDestinationName != null
                                             && cacheStartDestinationLatlng != null && cacheEndDestinationLatlng != null
                                             && historyViewModel.isFromHistory.value == false) {
@@ -1094,7 +1095,7 @@ class MapFragment : Fragment(), OnMapReadyCallback,
             val withinRadius = newMarkers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
 
             val withCombinedIncomingPath: MutableList<MarkerInfo> = mutableListOf<MarkerInfo>().apply {
-                addAll(withinRadius)
+//                addAll(withinRadius)
                 addAll(incomingMarkers)
             }
 
@@ -1236,8 +1237,8 @@ enum class NotificationMessage(val template: String) {
 
 }
 
-const val DISTANCE_RADIUS = 250.0
-const val DISTANCE_FROM_PATH = 10.0
+const val DISTANCE_RADIUS = 5.0
+const val DISTANCE_FROM_PATH = 5.0
 const val POLYLINE_WIDTH = 10f
 const val MAP_UPDATE_INTERVAL = 10000L
 const val CAMERA_ZOOM = 16f
