@@ -108,7 +108,7 @@ class ViewPagerAdapter(private val context: Context, private val items: List<Mar
         G1_1("G1-1", R.drawable.sign_advance_direction_sign),
         G1_2R("G1-2R", R.drawable.sign_cclex_toll_road_cebu_sign_2right),
         G2_1A("G2-1A", R.drawable.sign_cordova_direction_sign),
-        G2_1B("G2-1B", R.drawable.sign_MCIA_direction_sign),
+        G2_1B("G2-1B", R.drawable.sign_mcia_direction_sign),
         G2_1L("G2-1L", R.drawable.sign_cclex_toll_road_cebu_sign_left),
         G2_1R("G2-1R", R.drawable.sign_cclex_toll_road_cebu_sign_1right),
         G7_2("G7-2", R.drawable.sign_weighbridge_station),
