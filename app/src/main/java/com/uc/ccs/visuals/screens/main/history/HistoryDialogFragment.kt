@@ -24,6 +24,7 @@ import com.uc.ccs.visuals.data.LocalHistory
 import com.uc.ccs.visuals.databinding.FragmentHistoryDialogListDialogBinding
 import com.uc.ccs.visuals.databinding.FragmentHistoryDialogListDialogItemBinding
 import com.uc.ccs.visuals.factories.AdminDashboardViewModelFactory
+import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
 import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
 import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
 import kotlin.math.min
@@ -60,13 +61,15 @@ class HistoryDialogFragment : BottomSheetDialogFragment() {
             with(viewmodel) {
 
                 viewmodel.getLocalHistory()
-                val email = SharedPreferenceManager.getCurrentUser(requireContext())?.email ?: ""
-                firestoreViewModel.getTravelRideHistory(email,{
-                    saveHistoryListToLocal(it.map { it.toLocalHistory() })
-                    getLocalHistory()
-                }, {
+                val email: String? = FirebaseAuthManager.getCurrentUser()?.email
+                email?.let {
+                    firestoreViewModel.getTravelRideHistory(it,{ list ->
+                        saveHistoryListToLocal(list.map { it.toLocalHistory() })
+                        getLocalHistory()
+                    }, {
 
-                })
+                    })
+                }
 
                 setObservers()
             }

@@ -97,6 +97,7 @@ import com.uc.ccs.visuals.utils.extensions.hasLocationPermission
 import com.uc.ccs.visuals.utils.extensions.requestLocationPermissions
 import com.uc.ccs.visuals.utils.extensions.showConfirmationDialog
 import com.uc.ccs.visuals.utils.extensions.toMarkerInfoList
+import com.uc.ccs.visuals.utils.firebase.FirebaseAuthManager
 import com.uc.ccs.visuals.utils.firebase.FirestoreViewModel
 import com.uc.ccs.visuals.utils.sharedpreference.SharedPreferenceManager
 import kotlinx.coroutines.Dispatchers
@@ -294,12 +295,13 @@ class MapFragment : Fragment(), OnMapReadyCallback,
                                         val cacheStartDestinationName = SharedPreferenceManager.getCurrentDestinationName(requireContext())
                                         val cacheStartDestinationLatlng = currentLatLng.value
                                         val cacheEndDestinationLatlng = currentDestination.value
+                                        val email = FirebaseAuthManager.getCurrentUser()?.email ?: ""
                                         if (cacheStartDestinationName != null
                                             && cacheStartDestinationLatlng != null && cacheEndDestinationLatlng != null
                                             && historyViewModel.isFromHistory.value == false) {
                                             getPlaceNameFromLatLng(requireContext(), it, {placeName ->
                                                 firestoreViewModel.saveTravelRideHistory(
-                                                    userEmail = cacheUser?.email.toString(),
+                                                    userEmail = email,
                                                     startDestinationName = placeName,
                                                     endDestinationName = cacheStartDestinationName,
                                                     startDestinationLatLng = cacheStartDestinationLatlng,
