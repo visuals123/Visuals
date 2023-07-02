@@ -790,24 +790,30 @@ class MapFragment : Fragment(), OnMapReadyCallback,
         with(viewModel) {
             if (::mMap.isInitialized) {
 
-                val filterByRadius = latLng?.let {
-                    filterMarkersByRadius(
-                        it,
-                        allMarkers.value ?: emptyList(),
-                        DISTANCE_RADIUS
-                    )
-                }
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        val filterByRadius = latLng?.let {
+                            filterMarkersByRadius(
+                                it,
+                                allMarkers.value ?: emptyList(),
+                                DISTANCE_RADIUS
+                            )
+                        }
 
-                filterByRadius?.first?.map { markerInfo ->
-                    val markerOptions = MarkerOptions()
-                        .position(markerInfo.position)
-                        .icon(markerInfo.icon)
-                    mMap.addMarker(markerOptions)
-                }
+                        withContext(Dispatchers.Main) {
+                            filterByRadius?.first?.map { markerInfo ->
+                                val markerOptions = MarkerOptions()
+                                    .position(markerInfo.position)
+                                    .icon(markerInfo.icon)
+                                mMap.addMarker(markerOptions)
+                            }
 
-                val newMarkers = filterByRadius?.second ?: emptyList()
-                val withinRadius = newMarkers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
-                setupViewPager(withinRadius)
+                            val newMarkers = filterByRadius?.second ?: emptyList()
+                            val withinRadius = newMarkers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
+                            setupViewPager(withinRadius)
+                        }
+                    }
+                }
             }
         }
     }
@@ -1073,53 +1079,61 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     }
 
     override fun getMarkerMessageByLocation(latLng: LatLng): LocationTrackingService.NotificationContent? {
-        return with(viewModel) {
-            val filterByRadius = latLng?.let {
-                filterMarkersByRadius(
-                    it,
-                    allMarkers.value ?: emptyList(),
-                    DISTANCE_RADIUS
-                )
-            }
+        var notif = LocationTrackingService.NotificationContent("","")
+        with(viewModel) {
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    val filterByRadius = latLng?.let {
+                        filterMarkersByRadius(
+                            it,
+                            allMarkers.value ?: emptyList(),
+                            DISTANCE_RADIUS
+                        )
+                    }
 
-            filterByRadius?.first?.map { markerInfo ->
-                val markerOptions = MarkerOptions()
-                    .position(markerInfo.position)
-                    .icon(markerInfo.icon)
-                mMap.addMarker(markerOptions)
-            }
+                    withContext(Dispatchers.Main) {
+                        filterByRadius?.first?.map { markerInfo ->
+                            val markerOptions = MarkerOptions()
+                                .position(markerInfo.position)
+                                .icon(markerInfo.icon)
+                            mMap.addMarker(markerOptions)
+                        }
 
-            val incomingMarkers = getIncomingMarkers()
-            val newMarkers = filterByRadius?.second ?: emptyList()
-            val withinRadius = newMarkers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
+                        val incomingMarkers = getIncomingMarkers()
+                        val newMarkers = filterByRadius?.second ?: emptyList()
+                        val withinRadius = newMarkers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
 
-            val withCombinedIncomingPath: MutableList<MarkerInfo> = mutableListOf<MarkerInfo>().apply {
-                addAll(withinRadius)
-                addAll(incomingMarkers)
-            }
+                        val withCombinedIncomingPath: MutableList<MarkerInfo> = mutableListOf<MarkerInfo>().apply {
+                            addAll(withinRadius)
+                            addAll(incomingMarkers)
+                        }
 
-            setMarkers(withCombinedIncomingPath)
-            setNearbyMarkers(withCombinedIncomingPath)
+                        setMarkers(withCombinedIncomingPath)
+                        setNearbyMarkers(withCombinedIncomingPath)
 
-            val hasMultipleMarker = withinRadius.size > 1
+                        val hasMultipleMarker = withinRadius.size > 1
 
-            if (hasMultipleMarker) {
-                speakOut(NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance)))
-                LocationTrackingService.NotificationContent(
-                    title = "Multiple road signs",
-                    description = NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance))
-                )
-            } else {
-                if(withinRadius.isNotEmpty()) {
-                    val item = withinRadius[0]
-                    speakOut("In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}")
-                    LocationTrackingService.NotificationContent(
-                        title = item.title,
-                        description= "In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}"
-                    )
-                } else null
+                        if (hasMultipleMarker) {
+                            speakOut(NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance)))
+                            notif = LocationTrackingService.NotificationContent(
+                                title = "Multiple road signs",
+                                description = NotificationMessage.getRandomMessageForMultipleSigns(toDistanceString(withinRadius[0].distance))
+                            )
+                        } else {
+                            if(withinRadius.isNotEmpty()) {
+                                val item = withinRadius[0]
+                                speakOut("In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}")
+                                notif = LocationTrackingService.NotificationContent(
+                                    title = item.title,
+                                    description= "In ${toDistanceString(item.distance)}, theres a ${item.title}, ${item.description.toString()}"
+                                )
+                            } else null
+                        }
+                    }
+                }
             }
         }
+        return notif
     }
 
     private fun getIncomingMarkers(): MutableList<MarkerInfo> {
