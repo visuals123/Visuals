@@ -963,7 +963,8 @@ class MapFragment : Fragment(), OnMapReadyCallback,
     private fun setupViewPager(markers: List<MarkerInfo>) {
         with(binding) {
             val withinRadius = markers.filter { it.isWithinRadius }.sortedBy { it.isWithinRadius }
-            val adapter = ViewPagerAdapter(requireContext(),withinRadius ) {
+            val limitedMarkers = withinRadius.take(VIEW_PAGER_DISPLAY_LIMIT)
+            val adapter = ViewPagerAdapter(requireContext(),limitedMarkers ) {
                 clViewpagerContainer.isVisible = false
             }
 
@@ -1253,6 +1254,7 @@ enum class NotificationMessage(val template: String) {
 const val DISTANCE_RADIUS = 250.0
 const val DISTANCE_FROM_PATH = 10.0
 const val POLYLINE_WIDTH = 10f
+const val VIEW_PAGER_DISPLAY_LIMIT = 10
 const val MAP_UPDATE_INTERVAL = 10000L
 const val CAMERA_ZOOM = 16f
 const val CAMERA_ZOOM_DEFAULT = 12f
