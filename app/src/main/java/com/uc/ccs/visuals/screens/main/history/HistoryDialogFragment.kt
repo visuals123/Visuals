@@ -61,7 +61,6 @@ class HistoryDialogFragment : BottomSheetDialogFragment() {
 
                 viewmodel.getLocalHistory()
                 val email = SharedPreferenceManager.getCurrentUser(requireContext())?.email ?: ""
-                Log.d("qweqwe", "onViewCreated: ${SharedPreferenceManager.getCurrentUser(requireContext())}")
                 firestoreViewModel.getTravelRideHistory(email,{
                     saveHistoryListToLocal(it.map { it.toLocalHistory() })
                     getLocalHistory()
